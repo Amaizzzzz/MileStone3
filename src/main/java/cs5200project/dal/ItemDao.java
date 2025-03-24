@@ -71,7 +71,7 @@ public class ItemDao {
 		}
 	}
 
-	public static Item updateQuantity(Connection cxn, Item item,
+	public static <T extends Item> T updateQuantity(Connection cxn, T item,
 			int newQuantity) throws SQLException {
 		final String update = "UPDATE Item SET quantity = ? WHERE itemID = ?;";
 		try (PreparedStatement updateStmt = cxn.prepareStatement(update)) {

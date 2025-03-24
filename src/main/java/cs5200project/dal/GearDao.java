@@ -70,6 +70,15 @@ public class GearDao {
 		}
 	}
 
+	/**
+	 * Update the quantity of the Gear instance. Quantity only exists in Gear's
+	 * superclass Item
+	 */
+	public static Gear updateQuantity(Connection cxn, Gear gear,
+			int newQuantity) throws SQLException {
+		return ItemDao.updateQuantity(cxn, gear, newQuantity);
+	}
+
 	public static void delete(Connection cxn, Gear gear) throws SQLException {
 		ItemDao.delete(cxn, gear);
 	}

@@ -19,7 +19,9 @@ public class GearInstanceDao {
 
 	public static GearInstance create(Connection cxn, Item item,
 			Character character, GearSlot gearSlot) throws SQLException {
-		String insertGearInstance = "INSERT INTO GearInstance (itemID, characterID, slotID) VALUES (?, ?, ?);";
+		String insertGearInstance = """
+				INSERT INTO GearInstance (itemID, characterID, slotID)
+					VALUES (?, ?, ?);""";
 		try (PreparedStatement stmt = cxn.prepareStatement(insertGearInstance,
 				Statement.RETURN_GENERATED_KEYS)) {
 			stmt.setInt(1, item.getItemId());
@@ -28,7 +30,37 @@ public class GearInstanceDao {
 			stmt.executeUpdate();
 
 			return new GearInstance(Utils.getAutoIncrementKey(stmt),
-					item, character, gearSlot);
+					gearSlot, character, item);
+		}
+	}
+
+	public static GearInstance getGearInstanceByGearInstanceId(
+			Connection cxn,
+			GearInstance gearInstance
+	) throws SQLException {
+		String selectInstance = "SELECT * FROM GearInstance WHERE gearInstanceID = ?;";
+		try (PreparedStatement selectStmt = cxn
+				.prepareStatement(selectInstance)) {
+			selectStmt.setInt(1, gearInstance.getGearInstanceID());
+			try (ResultSet results = selectStmt.executeQuery()) {
+				if (results.next()) {
+
+					GearSlot slot = GearSlotDao.getGearSlotById(cxn,
+							results.getInt("slotID"));
+					/* **CharacterDao needs fix** */
+					Character character = CharacterDao.getCharacterById(cxn,
+							results.getInt("characterID"));
+					Item item = ItemDao.getItemById(cxn,
+							results.getInt("itemID"));
+					return new GearInstance(
+							gearInstance.getGearInstanceID(),
+							slot, character, item
+					);
+				}
+				else {
+					return null;
+				}
+			}
 		}
 	}
 
@@ -52,7 +84,7 @@ public class GearInstanceDao {
 
 					gearInstances.add(
 							new GearInstance(results.getInt("gearInstanceID"),
-									item, character, gearSlot));
+									gearSlot, character, item));
 				}
 			}
 		}

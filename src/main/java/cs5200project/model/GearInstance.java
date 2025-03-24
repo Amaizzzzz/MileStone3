@@ -8,8 +8,8 @@ public class GearInstance {
 	private Character character;
 	private GearSlot gearSlot;
 
-	public GearInstance(int gearInstanceID, Item item, Character character,
-			GearSlot gearSlot) {
+	public GearInstance(int gearInstanceID, GearSlot gearSlot,
+			Character character, Item item) {
 		this.gearInstanceID = gearInstanceID;
 		this.item = item;
 		this.character = character;
