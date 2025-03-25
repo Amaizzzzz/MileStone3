@@ -6,6 +6,9 @@ public class LevelThreshold {
     private int charLevel;         // Primary key
     private int requiredXP;
 
+    // Default constructor
+    public LevelThreshold() {}
+
     // constructor
     public LevelThreshold(int charLevel, int requiredXP) {
         this.charLevel = charLevel;
@@ -35,7 +38,7 @@ public class LevelThreshold {
     // hashCode method
     @Override
     public int hashCode() {
-        return Objects.hash(charLevel, requiredXP);
+        throw new UnsupportedOperationException("Not supported yet.");
     }   
 
     // equals method
@@ -43,14 +46,14 @@ public class LevelThreshold {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;      
-        LevelThreshold that = (LevelThreshold) obj;
-        return charLevel == that.charLevel && requiredXP == that.requiredXP;
+        LevelThreshold other = (LevelThreshold) obj;
+        return charLevel == other.charLevel && requiredXP == other.requiredXP;
     }
 
     // toString method
     @Override
     public String toString() {
-        return String.format("LevelThreshold[%d, %d]", charLevel, requiredXP);
+        return String.format("LevelThreshold(level=%d, requiredXP=%d)", charLevel, requiredXP);
     }
 
 }
