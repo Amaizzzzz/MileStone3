@@ -25,7 +25,7 @@ public class GearStatisticBonus {
 		return stats;
 	}
 
-	public void setStats(Statistics stats) {
+	public void setStats(Statistic stats) {
 		this.stats = stats;
 	}
 
@@ -61,6 +61,6 @@ public class GearStatisticBonus {
 	public String toString() {
 		return String.format(
 				"GearStatisticBonus(itemID=%d, statID=%d, bonusValue=%d)",
-				item.getItemId(), stats.getStatId(), bonusValue);
+				item.getItemId(), stats.getStatisticID(), bonusValue);
 	}
 }

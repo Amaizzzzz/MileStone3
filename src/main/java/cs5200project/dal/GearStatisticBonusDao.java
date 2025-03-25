@@ -9,6 +9,7 @@ import java.util.List;
 
 import cs5200project.model.GearStatisticBonus;
 import cs5200project.model.Item;
+import cs5200project.model.Statistic;
 
 public class GearStatisticBonusDao {
 	private GearStatisticBonusDao() {
@@ -21,7 +22,7 @@ public class GearStatisticBonusDao {
 				VALUES (?, ?, ?);""";
 		try (PreparedStatement insertStmt = cxn.prepareStatement(insertBonus)) {
 			insertStmt.setInt(1, item.getItemId());
-			insertStmt.setInt(2, stats.getStatId());
+			insertStmt.setInt(2, stats.getStatisticID());
 			insertStmt.setInt(3, bonusValue);
 			insertStmt.executeUpdate();
 			return new GearStatisticBonus(item, stats, bonusValue);
@@ -36,7 +37,7 @@ public class GearStatisticBonusDao {
 				""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectBonus)) {
 			selectStmt.setInt(1, item.getItemId());
-			selectStmt.setInt(2, stats.getStatId());
+			selectStmt.setInt(2, stats.getStatisticID());
 
 			try (ResultSet results = selectStmt.executeQuery()) {
 				if (results.next()) {
@@ -61,7 +62,8 @@ public class GearStatisticBonusDao {
 					int itemId = results.getInt("itemID");
 					Item item = ItemDao.getItemById(cxn, itemId);
 					int statId = results.getInt("statID");
-					Statistic stats = StatisticDao.getStatId(cxn, statId);
+					Statistic stats = StatisticDao.getStatisticByID(cxn,
+							statId);
 					bonusList.add(new GearStatisticBonus(
 							item, stats, results.getInt("bonusValue")));
 				}
