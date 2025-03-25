@@ -5,16 +5,17 @@ import java.sql.*;
 import java.util.*;
 
 public class CharacterCurrencyDao {
-    protected Connection connection;
-
-    public CharacterCurrencyDao(Connection connection) {
-        this.connection = connection;
+    // Dao classes should not be instantiated.
+    // Pass Connection object as parameter in each method
+    // Each method should be static
+    private CharacterCurrencyDao() {
+        // Private constructor to prevent instantiation
     }
 
-    public List<CharacterCurrency> getCurrenciesByCharacterId(int characterID) throws SQLException {
+    public static List<CharacterCurrency> getCurrenciesByCharacterId(Connection cxn, int characterID) throws SQLException {
         List<CharacterCurrency> currencies = new ArrayList<>();
         String query = "SELECT * FROM Character_Currency WHERE characterID = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        try (PreparedStatement stmt = cxn.prepareStatement(query)) {
             stmt.setInt(1, characterID);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

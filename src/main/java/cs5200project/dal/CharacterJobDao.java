@@ -5,16 +5,17 @@ import java.sql.*;
 import java.util.*;
 
 public class CharacterJobDao {
-    protected Connection connection;
-
-    public CharacterJobDao(Connection connection) {
-        this.connection = connection;
+    // Dao classes should not be instantiated.
+    // Pass Connection object as parameter in each method
+    // Each method should be static
+    private CharacterJobDao() {
+        // Private constructor to prevent instantiation
     }
 
-    public List<CharacterJob> getJobsByCharacterId(int characterID) throws SQLException {
+    public static List<CharacterJob> getJobsByCharacterId(Connection cxn, int characterID) throws SQLException {
         List<CharacterJob> jobs = new ArrayList<>();
         String query = "SELECT * FROM Character_Job WHERE characterID = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+        try (PreparedStatement stmt = cxn.prepareStatement(query)) {
             stmt.setInt(1, characterID);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
