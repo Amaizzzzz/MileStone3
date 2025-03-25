@@ -1,4 +1,4 @@
-package university.tools;
+package tools;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -38,7 +38,7 @@ public class ConnectionManager {
   // Port to your database server. By default, this is 3307.
   private static final int PORT = 3306;
   // Name of the MySQL schema that contains your tables.
-  private static final String SCHEMA = "HW5_Applications";
+  private static final String SCHEMA = "CS5200Project";
   // Default timezone for MySQL server.
   private static final String TIMEZONE = "UTC";
 
