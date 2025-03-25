@@ -8,3 +8,11 @@ MileStone3/
 .settings/
 build/
 MileStone3/
+.classpath
+.project
+.settings/
+build/
+MileStone3/
+src/main/java/cs5200project/driver/
+src/main/java/cs5200project/tools/
+src/main/webapp/
