@@ -38,7 +38,7 @@ public class LevelThreshold {
     // hashCode method
     @Override
     public int hashCode() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return Objects.hash(charLevel, requiredXP);
     }   
 
     // equals method

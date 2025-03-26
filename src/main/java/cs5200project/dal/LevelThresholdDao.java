@@ -30,7 +30,10 @@ public class LevelThresholdDao {
 	}
 
 	public static LevelThreshold getLevelThresholdByLevel(Connection cxn, int charLevel) throws SQLException {
-		final String selectLevelThreshold = "SELECT * FROM LevelThreshold WHERE charLevel = ?;";
+		final String selectLevelThreshold = """
+			SELECT * FROM LevelThreshold 
+			WHERE charLevel = ?;
+		""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectLevelThreshold)) {
 			selectStmt.setInt(1, charLevel);
 			try (ResultSet results = selectStmt.executeQuery()) {
@@ -47,7 +50,10 @@ public class LevelThresholdDao {
 	}
 
 	public static List<LevelThreshold> getAllLevelThresholds(Connection cxn) throws SQLException {
-		final String selectLevelThreshold = "SELECT * FROM LevelThreshold ORDER BY charLevel;";
+		final String selectLevelThreshold = """
+			SELECT * FROM LevelThreshold 
+			ORDER BY charLevel;
+		""";
 		List<LevelThreshold> thresholdList = new ArrayList<>();
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectLevelThreshold)) {
 			try (ResultSet results = selectStmt.executeQuery()) {
@@ -64,7 +70,11 @@ public class LevelThresholdDao {
 
 	public static <T extends LevelThreshold> T updateRequiredXP(Connection cxn, T levelThreshold,
 			int newRequiredXP) throws SQLException {
-		final String update = "UPDATE LevelThreshold SET requiredXP = ? WHERE charLevel = ?;";
+		final String update = """
+			UPDATE LevelThreshold 
+			SET requiredXP = ? 
+			WHERE charLevel = ?;
+		""";
 		try (PreparedStatement updateStmt = cxn.prepareStatement(update)) {
 			updateStmt.setInt(1, newRequiredXP);
 			updateStmt.setInt(2, levelThreshold.getCharLevel());
@@ -76,7 +86,10 @@ public class LevelThresholdDao {
 	}
 
 	public static void delete(Connection cxn, LevelThreshold levelThreshold) throws SQLException {
-		final String delete = "DELETE FROM LevelThreshold WHERE charLevel = ?;";
+		final String delete = """
+			DELETE FROM LevelThreshold 
+			WHERE charLevel = ?;
+		""";
 		try (PreparedStatement stmt = cxn.prepareStatement(delete)) {
 			stmt.setInt(1, levelThreshold.getCharLevel());
 			stmt.executeUpdate();

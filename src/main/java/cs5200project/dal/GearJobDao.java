@@ -16,47 +16,36 @@ public class GearJobDao {
     private GearJobDao() {
     }
 
-    public static boolean create(Connection cxn, int itemId, int jobId) throws SQLException {
+    public static GearJob create(Connection cxn, Gear gearItem, Job job) throws SQLException {
         final String insertGearJob = """
             INSERT INTO GearJob(itemID, jobID)
             VALUES (?, ?);
         """;
 
         try (PreparedStatement insertStmt = cxn.prepareStatement(insertGearJob)) {
-            insertStmt.setInt(1, itemId);
-            insertStmt.setInt(2, jobId);
-            int rowsAffected = insertStmt.executeUpdate();
-            return rowsAffected > 0;
+            insertStmt.setInt(1, gearItem.getItemId());
+            insertStmt.setInt(2, job.getJobID());
+            insertStmt.executeUpdate();
+
+            return new GearJob(gearItem, job);
         }
     }
 
-    public static GearJob getGearJobByIds(Connection cxn, int itemId, int jobId) throws SQLException {
+    public static GearJob getGearJobByItemIdAndJobId(Connection cxn, Gear gearItem, Job job) throws SQLException {
         final String selectGearJob = """
-            SELECT i.*, j.*
-            FROM GearJob gj
-            JOIN Item i ON gj.itemID = i.itemID
-            JOIN Job j ON gj.jobID = j.jobID
-            WHERE gj.itemID = ? AND gj.jobID = ?;
+            SELECT *
+            FROM GearJob
+            WHERE itemID = ? AND jobID = ?;
         """;
         try (PreparedStatement selectStmt = cxn.prepareStatement(selectGearJob)) {
-            selectStmt.setInt(1, itemId);
-            selectStmt.setInt(2, jobId);
+            selectStmt.setInt(1, gearItem.getItemId());
+            selectStmt.setInt(2, job.getJobID());
+
             try (ResultSet results = selectStmt.executeQuery()) {
                 if (results.next()) {
-                    Item item = new Item(
-                        results.getInt("itemID"),
-                        results.getString("itemName"),
-                        results.getInt("itemLevel"),
-                        results.getInt("maxStackSize"),
-                        results.getDouble("price"),
-                        results.getInt("quantity")
-                    );
-                    Job job = new Job(
-                        results.getInt("jobID"),
-                        results.getString("jobName"),
-                        results.getString("jobDescription")
-                    );
-                    return new GearJob(item, job);
+                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
+                    Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
+                    return new GearJob(gear, job);
                 } else {
                     return null;
                 }
@@ -64,33 +53,20 @@ public class GearJobDao {
         }
     }
 
-    public static List<GearJob> getGearJobsByItemId(Connection cxn, int itemId) throws SQLException {
+    public static List<GearJob> getGearJobsByItemId(Connection cxn, Gear gearItem) throws SQLException {
         final String selectGearJob = """
-            SELECT i.*, j.*
-            FROM GearJob gj
-            JOIN Item i ON gj.itemID = i.itemID
-            JOIN Job j ON gj.jobID = j.jobID
-            WHERE gj.itemID = ?;
+            SELECT *
+            FROM GearJob
+            WHERE itemID = ?;
         """;
         List<GearJob> gearJobList = new ArrayList<>();
         try (PreparedStatement selectStmt = cxn.prepareStatement(selectGearJob)) {
             selectStmt.setInt(1, itemId);
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
-                    Item item = new Item(
-                        results.getInt("itemID"),
-                        results.getString("itemName"),
-                        results.getInt("itemLevel"),
-                        results.getInt("maxStackSize"),
-                        results.getDouble("price"),
-                        results.getInt("quantity")
-                    );
-                    Job job = new Job(
-                        results.getInt("jobID"),
-                        results.getString("jobName"),
-                        results.getString("jobDescription")
-                    );
-                    gearJobList.add(new GearJob(item, job));
+                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
+                    Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
+                    gearJobList.add(new GearJob(gear, job));
                 }
                 return gearJobList;
             }
@@ -99,31 +75,18 @@ public class GearJobDao {
 
     public static List<GearJob> getGearJobsByJobId(Connection cxn, int jobId) throws SQLException {
         final String selectGearJob = """
-            SELECT i.*, j.*
-            FROM GearJob gj
-            JOIN Item i ON gj.itemID = i.itemID
-            JOIN Job j ON gj.jobID = j.jobID
-            WHERE gj.jobID = ?;
+            SELECT *
+            FROM GearJob
+            WHERE jobID = ?;
         """;
         List<GearJob> gearJobList = new ArrayList<>();
         try (PreparedStatement selectStmt = cxn.prepareStatement(selectGearJob)) {
             selectStmt.setInt(1, jobId);
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
-                    Item item = new Item(
-                        results.getInt("itemID"),
-                        results.getString("itemName"),
-                        results.getInt("itemLevel"),
-                        results.getInt("maxStackSize"),
-                        results.getDouble("price"),
-                        results.getInt("quantity")
-                    );
-                    Job job = new Job(
-                        results.getInt("jobID"),
-                        results.getString("jobName"),
-                        results.getString("jobDescription")
-                    );
-                    gearJobList.add(new GearJob(item, job));
+                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
+                    Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
+                    gearJobList.add(new GearJob(gear, job));
                 }
                 return gearJobList;
             }
@@ -131,10 +94,13 @@ public class GearJobDao {
     }
 
     public static void delete(Connection cxn, int itemId, int jobId) throws SQLException {
-        final String delete = "DELETE FROM GearJob WHERE itemID = ? AND jobID = ?;";
+        final String delete = """
+            DELETE FROM GearJob 
+            WHERE itemID = ? AND jobID = ?;
+        """;
         try (PreparedStatement stmt = cxn.prepareStatement(delete)) {
-            stmt.setInt(1, itemId);
-            stmt.setInt(2, jobId);
+            stmt.setInt(1, gearItem.getItemId());
+            stmt.setInt(2, job.getJobID());
             stmt.executeUpdate();
         }
     }

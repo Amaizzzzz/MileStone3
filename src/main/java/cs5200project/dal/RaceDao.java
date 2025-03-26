@@ -29,16 +29,17 @@ public class RaceDao {
 		}
 	}
 
-	public static Race getRaceById(Connection cxn, int raceId) throws SQLException {
-		final String selectRace = "SELECT * FROM Race WHERE raceID = ?;";
+	public static Race getRaceById(Connection cxn, Race race) throws SQLException {
+		final String selectRace = """
+			SELECT * FROM Race 
+			WHERE raceID = ?;
+		""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectRace)) {
-			selectStmt.setInt(1, raceId);
+			selectStmt.setInt(1, race.getRaceID());
 			try (ResultSet results = selectStmt.executeQuery()) {
 				if (results.next()) {
-					return new Race(
-						results.getInt("raceID"),
-						results.getString("raceName")
-					);
+					String raceName = results.getString("raceName");
+					return new Race(race.getRaceID(), raceName);
 				} else {
 					return null;
 				}
@@ -46,37 +47,11 @@ public class RaceDao {
 		}
 	}
 
-	public static List<Race> getRacesByPartialName(Connection cxn, String partialName) throws SQLException {
-		final String selectRace = "SELECT * FROM Race WHERE raceName LIKE ?;";
-		List<Race> raceList = new ArrayList<>();
-		try (PreparedStatement selectStmt = cxn.prepareStatement(selectRace)) {
-			selectStmt.setString(1, "%" + partialName + "%");
-			try (ResultSet results = selectStmt.executeQuery()) {
-				while (results.next()) {
-					raceList.add(new Race(
-						results.getInt("raceID"),
-						results.getString("raceName")
-					));
-				}
-				return raceList;
-			}
-		}
-	}
-
-	public static <T extends Race> T updateRaceName(Connection cxn, T race, String newRaceName) throws SQLException {
-		final String update = "UPDATE Race SET raceName = ? WHERE raceID = ?;";
-		try (PreparedStatement updateStmt = cxn.prepareStatement(update)) {
-			updateStmt.setString(1, newRaceName);
-			updateStmt.setInt(2, race.getRaceID());
-			updateStmt.executeUpdate();
-
-			race.setRaceName(newRaceName);
-			return race;
-		}
-	}
-
 	public static void delete(Connection cxn, Race race) throws SQLException {
-		final String delete = "DELETE FROM Race WHERE raceID = ?;";
+		final String delete = """
+			DELETE FROM Race 
+			WHERE raceID = ?;
+		""";
 		try (PreparedStatement stmt = cxn.prepareStatement(delete)) {
 			stmt.setInt(1, race.getRaceID());
 			stmt.executeUpdate();
