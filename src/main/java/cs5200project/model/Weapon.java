@@ -17,35 +17,28 @@ public class Weapon extends Item {
     WHITE, GREEN, BLUE, PURPLE, ORANGE, RED
   }
 
-  private int weaponId;
   private int damage;
   private int attackSpeed;
   private String weaponType;
-  private int requiredLevel;
   private String requiredJob;
   private WeaponDurability weaponDurability;
   private RankValue rankValue;
 
   // Constructor
-  public Weapon(int itemId, String itemName, int itemLevel, int maxStackSize,
-                double price, int quantity, int weaponId, int damage, int attackSpeed,
-                String weaponType, int requiredLevel, String requiredJob,
-                WeaponDurability weaponDurability, RankValue rankValue) {
-    super(itemId, itemName, itemLevel, maxStackSize, price, quantity);
-    this.weaponId = weaponId;
+	public Weapon(int itemID, String itemName, int itemLevel, int maxStackSize,
+			double price, int quantity, int requiredLevel, int damage,
+			int attackSpeed, String weaponType, String requiredJob,
+			WeaponDurability weaponDurability, RankValue rankValue) {
+		super(itemID, itemName, itemLevel, maxStackSize, price, quantity);
     this.damage = damage;
     this.attackSpeed = attackSpeed;
     this.weaponType = weaponType;
-    this.requiredLevel = requiredLevel;
     this.requiredJob = requiredJob;
     this.weaponDurability = weaponDurability;
     this.rankValue = rankValue;
   }
 
   // Getters
-  public int getWeaponId() {
-    return weaponId;
-  }
 
   public int getDamage() {
     return damage;
@@ -57,10 +50,6 @@ public class Weapon extends Item {
 
   public String getWeaponType() {
     return weaponType;
-  }
-
-  public int getRequiredLevel() {
-    return requiredLevel;
   }
 
   public String getRequiredJob() {
@@ -76,9 +65,6 @@ public class Weapon extends Item {
   }
 
   // Setters
-  public void setWeaponId(int weaponId) {
-    this.weaponId = weaponId;
-  }
 
   public void setDamage(int damage) {
     this.damage = damage;
@@ -90,10 +76,6 @@ public class Weapon extends Item {
 
   public void setWeaponType(String weaponType) {
     this.weaponType = weaponType;
-  }
-
-  public void setRequiredLevel(int requiredLevel) {
-    this.requiredLevel = requiredLevel;
   }
 
   public void setRequiredJob(String requiredJob) {
@@ -108,33 +90,33 @@ public class Weapon extends Item {
     this.rankValue = rankValue;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), weaponId, damage, attackSpeed, 
-                      weaponType, requiredLevel, requiredJob, weaponDurability, rankValue);
-  }
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (!super.equals(obj)) return false;
-    if (getClass() != obj.getClass()) return false;
-    Weapon other = (Weapon) obj;
-    return weaponId == other.weaponId &&
-           damage == other.damage &&
-           attackSpeed == other.attackSpeed &&
-           Objects.equals(weaponType, other.weaponType) &&
-           requiredLevel == other.requiredLevel &&
-           Objects.equals(requiredJob, other.requiredJob) &&
-           weaponDurability == other.weaponDurability &&
-           rankValue == other.rankValue;
-  }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Weapon other = (Weapon) obj;
+		return attackSpeed == other.attackSpeed && damage == other.damage
+				&& rankValue == other.rankValue
+				&& Objects.equals(requiredJob, other.requiredJob)
+				&& weaponDurability == other.weaponDurability
+				&& Objects.equals(weaponType, other.weaponType);
+	}
 
-  @Override
-  public String toString() {
-    return String.format(
-        "Weapon(id=%d, name=\"%s\", level=%d, damage=%d, speed=%d, type=\"%s\", reqLevel=%d, reqJob=\"%s\", durability=%s, rankValue=%s)",
-        weaponId, getItemName(), getItemLevel(), damage, attackSpeed, 
-        weaponType, requiredLevel, requiredJob, weaponDurability, rankValue);
-  }
+	@Override
+	public String toString() {
+		return "Weapon [damage=" + damage + ", attackSpeed=" + attackSpeed
+				+ ", weaponType=" + weaponType + ", requiredJob=" + requiredJob
+				+ ", weaponDurability=" + weaponDurability + ", rankValue="
+				+ rankValue + "]";
+	}
+
 }

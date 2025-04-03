@@ -1,77 +1,105 @@
 package cs5200project.dal;
 
-import cs5200project.model.Weapon.RankValue;
-import cs5200project.model.Weapon.WeaponDurability;
-import cs5200project.model.Weapon.WeaponType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
+import java.sql.Statement;
 
 import cs5200project.model.Weapon;
+import cs5200project.model.Weapon.RankValue;
+import cs5200project.model.Weapon.WeaponDurability;
 
 public class WeaponDao {
-  // Dao classes should not be instantiated.
-  // Pass Connection object as parameter in each method
-  // Each method should be static
-  private WeaponDao() {
-    // Private constructor to prevent instantiation
-  }
 
-  public static Weapon create(Connection cxn, String weaponName, Weapon.WeaponType weaponType, int gearSlotID, int jobID,
-      int requiredLevel, int damage, Weapon.WeaponDurability weaponDurability, Weapon.RankValue rankValue) throws SQLException {
-    String query = "INSERT INTO Weapon (weaponName, weaponType, gearSlotID, jobID, requiredLevel, damage, weaponDurability, rankValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    try (PreparedStatement stmt = cxn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
-      stmt.setString(1, weaponName);
-      stmt.setString(2, weaponType.name());
-      stmt.setInt(3, gearSlotID);
-      stmt.setInt(4, jobID);
-      stmt.setInt(5, requiredLevel);
-      stmt.setInt(6, damage);
-      stmt.setString(7, weaponDurability.name());
-      stmt.setString(8, rankValue.name());
+	private WeaponDao() {
+		// Prevent instantiation
+	}
 
-      int affectedRows = stmt.executeUpdate();
-      if (affectedRows == 0) {
-        throw new SQLException("Creating weapon failed, no rows affected.");
-      }
+	public static Weapon create(Connection cxn, String itemName, int itemLevel,
+			int maxStackSize, double price, int quantity, int damage,
+			int attackSpeed, String weaponType, String requiredJob,
+			WeaponDurability weaponDurability, RankValue rankValue)
+			throws SQLException {
 
-      try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-        if (generatedKeys.next()) {
-          int itemID = generatedKeys.getInt(1);
-          return new Weapon(itemID, weaponName, weaponType, gearSlotID,
-              jobID, requiredLevel, damage, weaponDurability, rankValue);
-        } else {
-          throw new SQLException("Creating weapon failed, no ID obtained.");
+		// 1. Insert into Item
+		String insertItem = "INSERT INTO Item (itemName, itemLevel, maxStackSize, price, quantity) VALUES (?, ?, ?, ?, ?)";
+		try (PreparedStatement stmtItem = cxn.prepareStatement(insertItem,
+				Statement.RETURN_GENERATED_KEYS)) {
+			stmtItem.setString(1, itemName);
+			stmtItem.setInt(2, itemLevel);
+			stmtItem.setInt(3, maxStackSize);
+			stmtItem.setDouble(4, price);
+			stmtItem.setInt(5, quantity);
+
+			stmtItem.executeUpdate();
+			ResultSet rsItem = stmtItem.getGeneratedKeys();
+
+			if (rsItem.next()) {
+				int itemID = rsItem.getInt(1);
+
+				// 2. Insert into Weapon
+				String insertWeapon = """
+						INSERT INTO Weapon (itemID, damage, attackSpeed, weaponType, requiredJob, weaponDurability, rankValue)
+						VALUES (?, ?, ?, ?, ?, ?, ?)
+						""";
+				try (PreparedStatement stmtWeapon = cxn
+						.prepareStatement(insertWeapon)) {
+					stmtWeapon.setInt(1, itemID);
+					stmtWeapon.setInt(2, damage);
+					stmtWeapon.setInt(3, attackSpeed);
+					stmtWeapon.setString(4, weaponType);
+					stmtWeapon.setString(5, requiredJob);
+					stmtWeapon.setString(6, weaponDurability.name());
+					stmtWeapon.setString(7, rankValue.name());
+
+					stmtWeapon.executeUpdate();
+				}
+
+				return new Weapon(itemID, itemName, itemLevel, maxStackSize,
+						price, quantity, 0, damage, attackSpeed, weaponType,
+						requiredJob, weaponDurability, rankValue);
+			} else {
+				throw new SQLException("Creating item failed, no ID returned.");
+			}
         }
-      }
     }
-  }
 
-  public static Weapon getWeaponById(Connection cxn, int id) throws SQLException {
-    String query = "SELECT * FROM Weapon WHERE itemID = ?";
-    try (PreparedStatement stmt = cxn.prepareStatement(query)) {
-      stmt.setInt(1, id);
-      try (ResultSet rs = stmt.executeQuery()) {
-        if (rs.next()) {
-          Weapon.WeaponType weaponType = Weapon.WeaponType.valueOf(rs.getString("weaponType"));
-          Weapon.WeaponDurability weaponDurability = Weapon.WeaponDurability.valueOf(rs.getString("weaponDurability"));
-          Weapon.RankValue rankValue = Weapon.RankValue.valueOf(rs.getString("rankValue"));
-          return new Weapon(
-              rs.getInt("itemID"),
-              rs.getString("weaponName"),
-              weaponType,
-              rs.getInt("gearSlotID"),
-              rs.getInt("jobID"),
-              rs.getInt("requiredLevel"),
-              rs.getInt("damage"),
-              weaponDurability,
-              rankValue
-          );
+	public static Weapon getWeaponById(Connection cxn, int itemID)
+			throws SQLException {
+		String query = """
+				SELECT i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
+				       w.damage, w.attackSpeed, w.weaponType, w.requiredJob,
+				       w.weaponDurability, w.rankValue
+				FROM Item i
+				JOIN Weapon w ON i.itemID = w.itemID
+				WHERE i.itemID = ?
+				""";
+
+		try (PreparedStatement stmt = cxn.prepareStatement(query)) {
+			stmt.setInt(1, itemID);
+			try (ResultSet rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					String itemName = rs.getString("itemName");
+					int itemLevel = rs.getInt("itemLevel");
+					int maxStackSize = rs.getInt("maxStackSize");
+					double price = rs.getDouble("price");
+					int quantity = rs.getInt("quantity");
+					int damage = rs.getInt("damage");
+					int attackSpeed = rs.getInt("attackSpeed");
+					String weaponType = rs.getString("weaponType");
+					String requiredJob = rs.getString("requiredJob");
+					WeaponDurability durability = WeaponDurability
+							.valueOf(rs.getString("weaponDurability"));
+					RankValue rank = RankValue
+							.valueOf(rs.getString("rankValue"));
+
+					return new Weapon(itemID, itemName, itemLevel, maxStackSize,
+							price, quantity, 0, damage, attackSpeed, weaponType,
+							requiredJob, durability, rank);
+				}
+			}
         }
-      }
+		return null;
     }
-    return null;
-  }
 }
