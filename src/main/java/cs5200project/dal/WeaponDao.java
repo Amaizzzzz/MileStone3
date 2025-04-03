@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import cs5200project.model.Weapon;
 import cs5200project.model.Weapon.RankValue;
@@ -22,48 +21,33 @@ public class WeaponDao {
 			WeaponDurability weaponDurability, RankValue rankValue)
 			throws SQLException {
 
-		// 1. Insert into Item
-		String insertItem = "INSERT INTO Item (itemName, itemLevel, maxStackSize, price, quantity) VALUES (?, ?, ?, ?, ?)";
-		try (PreparedStatement stmtItem = cxn.prepareStatement(insertItem,
-				Statement.RETURN_GENERATED_KEYS)) {
-			stmtItem.setString(1, itemName);
-			stmtItem.setInt(2, itemLevel);
-			stmtItem.setInt(3, maxStackSize);
-			stmtItem.setDouble(4, price);
-			stmtItem.setInt(5, quantity);
+		// Insert into Item table
+		final int itemId = ItemDao.create(cxn, itemName, itemLevel,
+				maxStackSize, price, quantity);
 
-			stmtItem.executeUpdate();
-			ResultSet rsItem = stmtItem.getGeneratedKeys();
+		// Insert into Weapon table
+		String insertWeapon = """
+					INSERT INTO Weapon (itemID, damage, attackSpeed, weaponType, requiredJob, weaponDurability, rankValue)
+					VALUES (?, ?, ?, ?, ?, ?, ?);
+				""";
+		try (PreparedStatement stmtWeapon = cxn
+				.prepareStatement(insertWeapon)) {
+			stmtWeapon.setInt(1, itemId);
+			stmtWeapon.setInt(2, damage);
+			stmtWeapon.setInt(3, attackSpeed);
+			stmtWeapon.setString(4, weaponType);
+			stmtWeapon.setString(5, requiredJob);
+			stmtWeapon.setString(6, weaponDurability.name());
+			stmtWeapon.setString(7, rankValue.name());
 
-			if (rsItem.next()) {
-				int itemID = rsItem.getInt(1);
+			stmtWeapon.executeUpdate();
+		}
 
-				// 2. Insert into Weapon
-				String insertWeapon = """
-						INSERT INTO Weapon (itemID, damage, attackSpeed, weaponType, requiredJob, weaponDurability, rankValue)
-						VALUES (?, ?, ?, ?, ?, ?, ?)
-						""";
-				try (PreparedStatement stmtWeapon = cxn
-						.prepareStatement(insertWeapon)) {
-					stmtWeapon.setInt(1, itemID);
-					stmtWeapon.setInt(2, damage);
-					stmtWeapon.setInt(3, attackSpeed);
-					stmtWeapon.setString(4, weaponType);
-					stmtWeapon.setString(5, requiredJob);
-					stmtWeapon.setString(6, weaponDurability.name());
-					stmtWeapon.setString(7, rankValue.name());
+		return new Weapon(itemId, itemName, itemLevel, maxStackSize, price,
+				quantity, 0, damage, attackSpeed, weaponType, requiredJob,
+				weaponDurability, rankValue);
+	}
 
-					stmtWeapon.executeUpdate();
-				}
-
-				return new Weapon(itemID, itemName, itemLevel, maxStackSize,
-						price, quantity, 0, damage, attackSpeed, weaponType,
-						requiredJob, weaponDurability, rankValue);
-			} else {
-				throw new SQLException("Creating item failed, no ID returned.");
-			}
-        }
-    }
 
 	public static Weapon getWeaponById(Connection cxn, int itemID)
 			throws SQLException {
