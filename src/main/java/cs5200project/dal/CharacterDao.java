@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import cs5200project.model.Character;
+import cs5200project.model.Player;
+import cs5200project.model.Race;
+import cs5200project.model.Job;
 
 public class CharacterDao {
     // Dao classes should not be instantiated.
@@ -29,10 +32,32 @@ public class CharacterDao {
             stmt.setTimestamp(5, new java.sql.Timestamp(creationTime.getTime()));
             stmt.setBoolean(6, isNewPlayer);
             stmt.setInt(7, job.getJobID());
-            return new Character(Utils.getAutoIncrementKey(stmt), player, firstName, lastName, 
-                race, creationTime, isNewPlayer, job); 
+            return new Character(Utils.getAutoIncrementKey(stmt), player.getPlayerID(), firstName, lastName, 
+                race.getRaceID(), creationTime, isNewPlayer, job.getJobID()); 
             }
+    }
     
+    public static Character create(Connection cxn, int playerID, String firstName, String lastName, int raceID, Date creationTime, boolean isNewPlayer, int currentJobID) throws SQLException {
+        String query = "INSERT INTO `Character` (playerID, firstName, lastName, raceID, creationTime, isNewPlayer, currentJobID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (
+            PreparedStatement stmt = 
+                cxn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)
+            ) {
+            stmt.setInt(1, playerID);
+            stmt.setString(2, firstName);
+            stmt.setString(3, lastName);
+            stmt.setInt(4, raceID);
+            stmt.setTimestamp(5, new java.sql.Timestamp(creationTime.getTime()));
+            stmt.setBoolean(6, isNewPlayer);
+            stmt.setInt(7, currentJobID);
+            
+            // Execute the statement before trying to get the generated keys
+            stmt.executeUpdate();
+            
+            int generatedKey = Utils.getAutoIncrementKey(stmt);
+            return new Character(generatedKey, playerID, firstName, lastName, 
+                raceID, creationTime, isNewPlayer, currentJobID); 
+            }
     }
 
     public static Character getCharacterById(Connection cxn, int id) throws SQLException {

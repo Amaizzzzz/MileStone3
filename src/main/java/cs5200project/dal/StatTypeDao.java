@@ -22,7 +22,7 @@ public class StatTypeDao {
 	 */
 	public static StatType create(Connection cxn, String name,
 			String description) throws SQLException {
-		String sql = "INSERT INTO StatType (name, description) VALUES (?, ?)";
+		String sql = "INSERT INTO `StatType` (statType, description) VALUES (?, ?)";
 		try (PreparedStatement ps = cxn.prepareStatement(sql,
 				Statement.RETURN_GENERATED_KEYS)) {
 			ps.setString(1, name);
@@ -42,14 +42,14 @@ public class StatTypeDao {
 	 */
 	public static StatType getStatTypeByID(Connection cxn, int statTypeID)
 			throws SQLException {
-		String sql = "SELECT statTypeID, name, description FROM StatType WHERE statTypeID = ?";
+		String sql = "SELECT statTypeID, statType, description FROM StatType WHERE statTypeID = ?";
 		try (PreparedStatement ps = cxn.prepareStatement(sql)) {
 			ps.setInt(1, statTypeID);
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					StatType st = new StatType();
 					st.setStatTypeID(rs.getInt("statTypeID"));
-					st.setName(rs.getString("name"));
+					st.setName(rs.getString("statType"));
 					st.setDescription(rs.getString("description"));
 					return st;
 				}
@@ -106,7 +106,7 @@ public class StatTypeDao {
 	 */
 	public static List<StatType> getStatTypeByName(Connection cxn,
 			String partialName) throws SQLException {
-		String sql = "SELECT statTypeID, name, description FROM StatType WHERE name LIKE ?";
+		String sql = "SELECT statTypeID, statType, description FROM StatType WHERE statType LIKE ?";
 		try (PreparedStatement ps = cxn.prepareStatement(sql)) {
 			ps.setString(1, "%" + partialName + "%");
 			try (ResultSet rs = ps.executeQuery()) {
@@ -114,7 +114,7 @@ public class StatTypeDao {
 				while (rs.next()) {
 					StatType st = new StatType();
 					st.setStatTypeID(rs.getInt("statTypeID"));
-					st.setName(rs.getString("name"));
+					st.setName(rs.getString("statType"));
 					st.setDescription(rs.getString("description"));
 					result.add(st);
 				}

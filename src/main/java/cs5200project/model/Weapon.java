@@ -27,6 +27,19 @@ public class Weapon extends Item {
   // Constructor
 	public Weapon(int itemID, String itemName, int itemLevel, int maxStackSize,
 			double price, int quantity, int requiredLevel, int damage,
+			int attackSpeed, String weaponType, Job requiredJob,
+			WeaponDurability weaponDurability, RankValue rankValue) {
+		super(itemID, itemName, itemLevel, maxStackSize, price, quantity);
+    this.damage = damage;
+    this.attackSpeed = attackSpeed;
+    this.weaponType = weaponType;
+    this.requiredJob = requiredJob.getJobName();
+    this.weaponDurability = weaponDurability;
+    this.rankValue = rankValue;
+  }
+
+  public Weapon(int itemID, String itemName, int itemLevel, int maxStackSize,
+			double price, int quantity, int requiredLevel, int damage,
 			int attackSpeed, String weaponType, String requiredJob,
 			WeaponDurability weaponDurability, RankValue rankValue) {
 		super(itemID, itemName, itemLevel, maxStackSize, price, quantity);

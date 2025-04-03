@@ -32,6 +32,10 @@ public class GearInstance {
 		this.item = item;
 	}
 
+	public int getGearId() {
+		return item != null ? item.getItemId() : 0;
+	}
+
 	public Character getCharacter() {
 		return character;
 	}

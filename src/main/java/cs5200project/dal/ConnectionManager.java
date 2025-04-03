@@ -4,107 +4,95 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * Use ConnectionManager to connect to your database instance.
+ *
+ * ConnectionManager uses the MySQL Connector/J driver to connect to
+ * your local MySQL instance.
+ *
+ * In our example, we will create a DAO (data access object) java
+ * class to interact with each MySQL table. The DAO java classes will
+ * use ConnectionManager to open and close connections.
+ *
+ *
+ * Before using, you must edit the values for PASSWORD and SCHEMA
+ * below.  PASSWORD must be the MySQL password you configured when you
+ * installed MySQL server, and SCHEMA must be the name of the database
+ * schema that the application will use.
+ */
 public class ConnectionManager {
-    private static final int MAX_POOL_SIZE = 10;
-    private static final int CONNECTION_TIMEOUT = 5; // seconds
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/ffxiv_db";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "root";
-    
-    private static ConnectionManager instance;
-    private final BlockingQueue<Connection> connectionPool;
-    private int activeConnections = 0;
-    
-    private ConnectionManager() {
-        connectionPool = new ArrayBlockingQueue<>(MAX_POOL_SIZE);
-        initializePool();
+
+  /**
+   * Private default constructor to prevent instantiation.
+   */
+  private ConnectionManager() { }
+
+  // User to connect to your database instance. By default, this is "root2".
+  private static final String USER = "root";
+  // Password for the user.
+  private static final String PASSWORD = "Cao123456789";
+  // URI to your database server. If running on the same machine, then
+  // this is "localhost".
+  private static final String HOSTNAME = "localhost";
+  // Port to your database server. By default, this is 3307.
+  private static final int PORT = 3306;
+  // Name of the MySQL schema that contains your tables.
+  private static final String SCHEMA = "cs5200project";
+  // Default timezone for MySQL server.
+  private static final String TIMEZONE = "UTC";
+
+  /** Get the connection to the database instance. */
+  public static Connection getConnection() throws SQLException {
+    Connection connection = null;
+    try {
+      Properties connectionProperties = new Properties();
+      connectionProperties.put("user", USER);
+      connectionProperties.put("password", PASSWORD);
+      connectionProperties.put("serverTimezone", TIMEZONE);
+      // Ensure the JDBC driver is loaded by retrieving the runtime
+      // Class descriptor.  Otherwise, Tomcat may have issues loading
+      // libraries in the proper order.  One alternative is calling
+      // this in the HttpServlet init() override.
+      try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+      } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+        throw new SQLException(e);
+      }
+      connection = DriverManager.getConnection(
+        String.format(
+          "jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true",
+          HOSTNAME,
+          PORT,
+          SCHEMA
+        ),
+        connectionProperties
+      );
+    } catch (SQLException e) {
+      e.printStackTrace();
+      throw e;
     }
-    
-    public static synchronized ConnectionManager getInstance() {
-        if (instance == null) {
-            instance = new ConnectionManager();
-        }
-        return instance;
-    }
-    
-    private void initializePool() {
-        try {
-            // Load MySQL JDBC Driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            // Create initial connections
-            for (int i = 0; i < MAX_POOL_SIZE; i++) {
-                createConnection();
-            }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Failed to load MySQL JDBC Driver", e);
-        }
-    }
-    
-    private void createConnection() {
-        try {
-            Properties props = new Properties();
-            props.setProperty("user", DB_USER);
-            props.setProperty("password", DB_PASSWORD);
-            props.setProperty("useSSL", "false");
-            props.setProperty("serverTimezone", "UTC");
-            
-            Connection connection = DriverManager.getConnection(DB_URL, props);
-            connectionPool.offer(connection);
-            activeConnections++;
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to create database connection", e);
-        }
-    }
-    
-    public Connection getConnection() throws SQLException {
-        try {
-            Connection connection = connectionPool.poll(CONNECTION_TIMEOUT, TimeUnit.SECONDS);
-            if (connection == null || connection.isClosed()) {
-                createConnection();
-                connection = connectionPool.poll(CONNECTION_TIMEOUT, TimeUnit.SECONDS);
-            }
-            return connection;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new SQLException("Interrupted while waiting for connection", e);
-        }
-    }
-    
-    public void releaseConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                if (connection.isClosed()) {
-                    createConnection();
-                } else {
-                    connectionPool.offer(connection);
-                }
-            } catch (SQLException e) {
-                // Log the error but don't throw it
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    public void closeAllConnections() {
-        while (!connectionPool.isEmpty()) {
-            try {
-                Connection connection = connectionPool.poll();
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-                activeConnections--;
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    public int getActiveConnections() {
-        return activeConnections;
-    }
+    return connection;
+  }
+
+  /**
+   * Open and return a connection to the database server that is not
+   * associated with a particular schema.  We use this for operations
+   * that delete and re-create the schema; see Driver.java for an example.
+   */
+  public static Connection getSchemalessConnection() throws SQLException {
+    Properties connectionProperties = new Properties();
+    connectionProperties.put("user", USER);
+    connectionProperties.put("password", PASSWORD);
+    connectionProperties.put("serverTimezone", TIMEZONE);
+    return DriverManager.getConnection(
+      String.format(
+        "jdbc:mysql://%s:%d?useSSL=false&allowPublicKeyRetrieval=true",
+        HOSTNAME,
+        PORT
+        ),
+      connectionProperties
+    );
+  }
 }

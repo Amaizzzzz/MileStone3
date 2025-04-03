@@ -29,9 +29,9 @@ public class ConsumableDao {
 			itemID = ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
 		}
 
-    // Insert into Consumables table
+    // Insert into Consumable table
     String query =
-			"INSERT INTO Consumables (itemID, consumablesType, consumablesDescription, source) VALUES (?, ?, ?, ?)";
+			"INSERT INTO `Consumable` (itemID, consumablesType, description, source) VALUES (?, ?, ?, ?)";
     
     try (PreparedStatement stmt = cxn.prepareStatement(query)) {
 		stmt.setInt(1, itemID);
@@ -50,10 +50,10 @@ public class ConsumableDao {
 			throws SQLException {
 		String query = """
 				SELECT i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
-				       c.consumablesType, c.consumablesDescription, c.source
-				FROM Item i
-				JOIN Consumables c ON i.itemID = c.itemID
-				WHERE i.itemID = ?;
+				       c.consumablesType, c.description, c.source
+				FROM `Item` i
+				JOIN `Consumable` c ON i.itemID = c.itemID
+				WHERE i.itemID = ?
 				""";
     try (PreparedStatement stmt = cxn.prepareStatement(query)) {
       stmt.setInt(1, itemID);
@@ -67,7 +67,7 @@ public class ConsumableDao {
 					rs.getDouble("price"),
 					rs.getInt("quantity"),
 					ConsumablesType.valueOf(rs.getString("consumablesType")),
-					rs.getString("consumablesDescription"),
+					rs.getString("description"),
 					rs.getString("source")
           );
         }
@@ -76,6 +76,47 @@ public class ConsumableDao {
     return null;
   }
   
+  // Get all consumables of a specific type
+  public static List<Consumable> getConsumablesByType(Connection cxn, ConsumablesType type) 
+      throws SQLException {
+    String query = """
+            SELECT i.itemID, i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
+                   c.description, c.source
+            FROM `Item` i
+            JOIN `Consumable` c ON i.itemID = c.itemID
+            WHERE c.consumablesType = ?
+            """;
+    
+    List<Consumable> consumables = new ArrayList<>();
+    
+    try (PreparedStatement stmt = cxn.prepareStatement(query)) {
+      stmt.setString(1, type.name());
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          consumables.add(new Consumable(
+              rs.getInt("itemID"),
+              rs.getString("itemName"),
+              rs.getInt("itemLevel"),
+              rs.getInt("maxStackSize"),
+              rs.getDouble("price"),
+              rs.getInt("quantity"),
+              type,
+              rs.getString("description"),
+              rs.getString("source")
+          ));
+        }
+      }
+    }
+    return consumables;
+  }
+  
+  /**
+   * Update the quantity of the Consumable instance. Quantity exists in the superclass Item
+   */
+  public static Consumable updateQuantity(Connection cxn, Consumable consumable, int newQuantity) 
+      throws SQLException {
+    return ItemDao.updateQuantity(cxn, consumable, newQuantity);
+  }
   
   public static void delete(Connection cxn, Consumable consumable) throws SQLException {
     ItemDao.delete(cxn, consumable);

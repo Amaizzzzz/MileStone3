@@ -12,15 +12,15 @@ import cs5200project.model.Statistic;
 
 public class StatisticDao {
 
-	public static Statistic create(Connection cxn, int statValue,
-			int statTypeID) throws SQLException {
-		String sql = "INSERT INTO Statistic (statValue, statTypeID) VALUES (?, ?)";
+	public static Statistic create(Connection cxn, int statTypeID, int statValue) throws SQLException {
+		String sql = "INSERT INTO `Statistic` (statTypeID, statValue) VALUES (?, ?)";
 		try (PreparedStatement ps = cxn.prepareStatement(sql,
 				Statement.RETURN_GENERATED_KEYS)) {
-			ps.setInt(1, statValue);
-			ps.setInt(2, statTypeID);
+			ps.setInt(1, statTypeID);
+			ps.setInt(2, statValue);
 			ps.executeUpdate();
 			return new Statistic(Utils.getAutoIncrementKey(ps), statValue, statTypeID);
+		}
 	}
 
 	/**

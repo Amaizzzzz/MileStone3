@@ -26,15 +26,16 @@ public class WeaponDao {
 			WeaponDurability weaponDurability, RankValue rankValue) 
 			throws SQLException {
 
-		// If itemID is 0, create a new Item
+		// If itemID is 0, create a new Item in the parent table
+		// and get back the auto-generated ID
 		if (itemID == 0) {
 			itemID = ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
 		}
 
 		// Insert into Weapon table
 		final String insertWeapon = """
-			INSERT INTO Weapon (itemID, requiredLevel, damage, attackSpeed, weaponType, gearSlotID, requiredJob, weaponDurability, rankValue)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+			INSERT INTO `Weapon` (itemID, requiredLevel, damage, attackSpeed, weaponType, gearSlotID, jobID, weaponDurability, rankValue)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 			""";
 			
 		try (PreparedStatement stmt = cxn.prepareStatement(insertWeapon)) {
@@ -62,9 +63,9 @@ public class WeaponDao {
 		String query = """
 				SELECT i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
 				       w.requiredLevel, w.damage, w.attackSpeed, w.weaponType, 
-				       w.gearSlotID, w.requiredJob, w.weaponDurability, w.rankValue
-				FROM Weapon w
-				JOIN Item i ON w.itemID = i.itemID
+				       w.gearSlotID, w.jobID, w.weaponDurability, w.rankValue
+				FROM `Weapon` w
+				JOIN `Item` i ON w.itemID = i.itemID
 				WHERE w.itemID = ?
 				""";
 
@@ -82,8 +83,10 @@ public class WeaponDao {
 					int attackSpeed = rs.getInt("attackSpeed");
 					String weaponType = rs.getString("weaponType");
 					
-					// Get the required job name
-					int requiredJob = rs.getInt("requiredJob");
+					// Get the required job name from the Job table
+					int requiredJobID = rs.getInt("jobID");
+					Job job = JobDao.getJobById(cxn, requiredJobID);
+					String requiredJobName = job != null ? job.getJobName() : "";
 					
 					WeaponDurability weaponDurability = WeaponDurability
 							.valueOf(rs.getString("weaponDurability"));
@@ -92,7 +95,7 @@ public class WeaponDao {
 
 					return new Weapon(itemID, itemName, itemLevel, maxStackSize,
 							price, quantity, requiredLevel, damage, attackSpeed, weaponType,
-							gearSlot, requiredJob, weaponDurability, rankValue);
+							requiredJobName, weaponDurability, rankValue);
 				}
 			}
         }

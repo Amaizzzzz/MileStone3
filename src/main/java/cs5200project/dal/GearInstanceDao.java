@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cs5200project.model.Character;
+import cs5200project.model.Gear;
 import cs5200project.model.GearInstance;
 import cs5200project.model.GearSlot;
 import cs5200project.model.Item;
@@ -20,8 +21,8 @@ public class GearInstanceDao {
 	public static GearInstance create(Connection cxn, Gear gear,
 			Character character, GearSlot gearSlot) throws SQLException {
 		String insertGearInstance = """
-				INSERT INTO GearInstance (itemID, characterID, slotID)
-					VALUES (?, ?, ?);""";
+				INSERT INTO `GearInstance` (itemID, characterID, gearSlotID)
+					VALUES (?, ?, ?)""";
 		try (PreparedStatement stmt = cxn.prepareStatement(insertGearInstance,
 				Statement.RETURN_GENERATED_KEYS)) {
 			stmt.setInt(1, gear.getItemId());
@@ -37,7 +38,7 @@ public class GearInstanceDao {
 			Connection cxn,
 			GearInstance gearInstance
 	) throws SQLException {
-		String selectInstance = "SELECT * FROM GearInstance WHERE gearInstanceID = ?;";
+		String selectInstance = "SELECT * FROM `GearInstance` WHERE gearInstanceID = ?";
 		try (PreparedStatement selectStmt = cxn
 				.prepareStatement(selectInstance)) {
 			selectStmt.setInt(1, gearInstance.getGearInstanceID());
@@ -45,8 +46,7 @@ public class GearInstanceDao {
 				if (results.next()) {
 
 					GearSlot slot = GearSlotDao.getGearSlotById(cxn,
-							results.getInt("slotID"));
-					/* **CharacterDao needs fix** */
+							results.getInt("gearSlotID"));
 					Character character = CharacterDao.getCharacterById(cxn,
 							results.getInt("characterID"));
 					Gear gear = GearDao.getGearByItemID(cxn,
@@ -65,7 +65,7 @@ public class GearInstanceDao {
 
 	public static List<GearInstance> getGearInstanceByItemID(Connection cxn,
 			Gear gear) throws SQLException {
-		String selectGearInstance = "SELECT * FROM GearInstance WHERE itemId = ?;";
+		String selectGearInstance = "SELECT * FROM `GearInstance` WHERE itemID = ?";
 		List<GearInstance> gearInstances = new ArrayList<>();
 		try (PreparedStatement stmt = cxn
 				.prepareStatement(selectGearInstance)) {
@@ -73,17 +73,16 @@ public class GearInstanceDao {
 			try (ResultSet results = stmt.executeQuery()) {
 				while (results.next()) {
 					int characterID = results.getInt("characterID");
-					int slotID = results.getInt("slotID");
+					int gearSlotID = results.getInt("gearSlotID");
 
-					/* *** CharacterDao.getCharacterById needs fix *** */
 					Character character = CharacterDao.getCharacterById(cxn,
 							characterID);
 					GearSlot gearSlot = GearSlotDao.getGearSlotById(cxn,
-							slotID);
+							gearSlotID);
 
 					gearInstances.add(
 							new GearInstance(results.getInt("gearInstanceID"),
-									gearSlot, character, gxxear));
+									gearSlot, character, gear));
 				}
 			}
 		}

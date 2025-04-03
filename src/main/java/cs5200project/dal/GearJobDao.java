@@ -16,17 +16,24 @@ public class GearJobDao {
     }
 
     public static GearJob create(Connection cxn, Gear gearItem, Job job) throws SQLException {
+        return create(cxn, gearItem.getItemId(), job.getJobID());
+    }
+
+    public static GearJob create(Connection cxn, int itemID, int jobID) throws SQLException {
         final String insertGearJob = """
             INSERT INTO GearJob(itemID, jobID)
             VALUES (?, ?);
         """;
 
         try (PreparedStatement insertStmt = cxn.prepareStatement(insertGearJob)) {
-            insertStmt.setInt(1, gearItem.getItemId());
-            insertStmt.setInt(2, job.getJobID());
+            insertStmt.setInt(1, itemID);
+            insertStmt.setInt(2, jobID);
             insertStmt.executeUpdate();
 
-            return new GearJob(gearItem, job);
+            Gear gear = GearDao.getGearByItemID(cxn, itemID);
+            Job job = JobDao.getJobById(cxn, jobID);
+            
+            return new GearJob(gear, job);
         }
     }
 
