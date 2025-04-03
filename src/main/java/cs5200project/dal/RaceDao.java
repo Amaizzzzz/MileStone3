@@ -6,13 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import cs5200project.model.Player;
 import cs5200project.model.Race;
 
 public class RaceDao {
 	private RaceDao() {
 	}
 
-	public static int create(Connection cxn, String raceName) throws SQLException {
+	public static Race create(Connection cxn, String raceName) throws SQLException {
 		final String insertRace = """
 			INSERT INTO Race(raceName)
 			VALUES (?);
@@ -23,7 +24,7 @@ public class RaceDao {
 			insertStmt.setString(1, raceName);
 			insertStmt.executeUpdate();
 
-			return Utils.getAutoIncrementKey(insertStmt);
+			return new Race(Utils.getAutoIncrementKey(insertStmt), raceName);
 		}
 	}
 

@@ -28,9 +28,8 @@ public class GearInstanceDao {
 			stmt.setInt(2, character.getCharacterID());
 			stmt.setInt(3, gearSlot.getSlotID());
 			stmt.executeUpdate();
-
-			return new GearInstance(Utils.getAutoIncrementKey(stmt),
-					gearSlot, character, item);
+			
+			return new GearInstance(Utils.getAutoIncrementKey(stmt), gearSlot, character, item);
 		}
 	}
 

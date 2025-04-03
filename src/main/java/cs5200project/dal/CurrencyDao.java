@@ -29,19 +29,7 @@ public class CurrencyDao {
                 stmt.setNull(3, java.sql.Types.INTEGER);
             }
             
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("Creating currency failed, no rows affected.");
-            }
-            
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    int currencyID = generatedKeys.getInt(1);
-                    return new Currency(currencyID, currencyName, cap, weeklyCap);
-                } else {
-                    throw new SQLException("Creating currency failed, no ID obtained.");
-                }
-            }
+            return new Currency(Utils.getAutoIncrementKey(stmt), currencyName, cap, weeklyCap);
         }
     }
     
@@ -66,6 +54,7 @@ public class CurrencyDao {
         return null;
     }
     
+    // Maybe not needed
     public static List<Currency> getAllCurrencies(Connection cxn) throws SQLException {
         List<Currency> currencies = new ArrayList<>();
         String query = "SELECT * FROM Currency";

@@ -14,7 +14,7 @@ public class LevelThresholdDao {
 	private LevelThresholdDao() {
 	}
 
-	public static int create(Connection cxn, int charLevel, int requiredXP) throws SQLException {
+	public static LevelThreshold create(Connection cxn, int charLevel, int requiredXP) throws SQLException {
 		final String insertLevelThreshold = """
 			INSERT INTO LevelThreshold(charLevel, requiredXP)
 			VALUES (?, ?);
@@ -24,8 +24,8 @@ public class LevelThresholdDao {
 			insertStmt.setInt(1, charLevel);
 			insertStmt.setInt(2, requiredXP);
 			insertStmt.executeUpdate();
-			
-			return charLevel;  // Since charLevel is the primary key
+
+			return new LevelThreshold(charLevel, requiredXP);
 		}
 	}
 
@@ -82,17 +82,6 @@ public class LevelThresholdDao {
 
 			levelThreshold.setRequiredXP(newRequiredXP);
 			return levelThreshold;
-		}
-	}
-
-	public static void delete(Connection cxn, LevelThreshold levelThreshold) throws SQLException {
-		final String delete = """
-			DELETE FROM LevelThreshold 
-			WHERE charLevel = ?;
-		""";
-		try (PreparedStatement stmt = cxn.prepareStatement(delete)) {
-			stmt.setInt(1, levelThreshold.getCharLevel());
-			stmt.executeUpdate();
 		}
 	}
 }

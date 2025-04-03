@@ -12,18 +12,18 @@ public class CharacterJobDao {
         // Private constructor to prevent instantiation
     }
 
-    public static CharacterJob create(Connection connection, CharacterJob job) throws SQLException {
+    public static CharacterJob create(Connection connection, Character character, Job job, boolean isUnlocked, int xp) throws SQLException {
         String insertQuery = "INSERT INTO Character_Job (characterID, jobID, isUnlocked, XP) VALUES (?, ?, ?, ?)";
         
         try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-            statement.setInt(1, job.getCharacterID());
+            statement.setInt(1, character.getCharacterID());
             statement.setInt(2, job.getJobID());
-            statement.setBoolean(3, job.isUnlocked());
-            statement.setInt(4, job.getXp());
+            statement.setBoolean(3, isUnlocked);
+            statement.setInt(4, xp);
             
             statement.executeUpdate();
         }
-        return job;
+        return new CharacterJob(character, job, isUnlocked, xp);
     }
 
     public static List<CharacterJob> getJobsByCharacterId(Connection cxn, int characterID) throws SQLException {

@@ -15,7 +15,7 @@ public class ClanDao {
 	private ClanDao() {
 	}
 
-	public static int create(Connection cxn, String clanName, Race race) throws SQLException {
+	public static Clan create(Connection cxn, String clanName, Race race) throws SQLException {
 		final String insertClan = """
 			INSERT INTO Clan(clanName, raceID)
 			VALUES (?, ?);
@@ -29,7 +29,7 @@ public class ClanDao {
 			insertStmt.setInt(2, race.getRaceID());
 			insertStmt.executeUpdate();
 
-			return Utils.getAutoIncrementKey(insertStmt);
+			return new Clan(Utils.getAutoIncrementKey(insertStmt), clanName, race);
 		}
 	}
 

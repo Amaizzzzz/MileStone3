@@ -21,8 +21,8 @@ public class GearSlotDao {
 				Statement.RETURN_GENERATED_KEYS)) {
 			insertStmt.setString(1, slotName);
 			insertStmt.executeUpdate();
-			return new GearSlot(Utils.getAutoIncrementKey(insertStmt),
-					slotName);
+
+			return new GearSlot(Utils.getAutoIncrementKey(insertStmt), slotName);	
 		}
 	}
 

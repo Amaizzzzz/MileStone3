@@ -10,21 +10,25 @@ import java.util.List;
 import cs5200project.model.Gear;
 import cs5200project.model.Item;
 
-public class GearDao {
+public class GearDao { 
+	// Dao classes should not be instantiated.
+	// Pass Connection object as parameter in each method
+	// Each method should be static
 	private GearDao() {
 	}
 
 	public static Gear create(Connection cxn, 
-			String itemName, int itemLevel, int maxStackSize,
+			int itemLevel, int maxStackSize,
 			double price, int quantity, int requiredLevel)
 			throws SQLException {
-		final int itemId = ItemDao.create(cxn, itemName, itemLevel,
-				maxStackSize, price, quantity);
+		
 		String insertGear = "INSERT INTO Gear (itemId, requiredLevel) VALUES (?, ?);";
+
 		try (PreparedStatement insertStmt = cxn.prepareStatement(insertGear)) {
-			insertStmt.setInt(1, itemId);
+			ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
 			insertStmt.setInt(2, requiredLevel);
 			insertStmt.executeUpdate();
+
 			return new Gear(itemId, itemName, itemLevel, maxStackSize, price,
 					quantity, requiredLevel);
 		}

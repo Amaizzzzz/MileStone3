@@ -20,16 +20,7 @@ public class StatisticDao {
 			ps.setInt(1, statValue);
 			ps.setInt(2, statTypeID);
 			ps.executeUpdate();
-
-			// Retrieve the auto-generated key
-			try (ResultSet rs = ps.getGeneratedKeys()) {
-				if (rs.next()) {
-					int newID = rs.getInt(1);
-					return getStatisticByID(cxn, newID);
-				}
-			}
-		}
-		return null;
+			return new Statistic(Utils.getAutoIncrementKey(ps), statValue, statTypeID);
 	}
 
 	/**
