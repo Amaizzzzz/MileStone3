@@ -12,7 +12,7 @@ public class JobDao {
     private JobDao() {
     }
 
-    public static int create(Connection cxn, Job job) throws SQLException {
+    public static Job create(Connection cxn, String jobName) throws SQLException {
         final String insertJob = """
             INSERT INTO Job(jobName)
             VALUES (?);
@@ -20,10 +20,10 @@ public class JobDao {
 
         try (PreparedStatement insertStmt = cxn.prepareStatement(insertJob,
                 Statement.RETURN_GENERATED_KEYS)) {
-            insertStmt.setString(1, job.getJobName());
+            insertStmt.setString(1, jobName);
             insertStmt.executeUpdate();
 
-            return Utils.getAutoIncrementKey(insertStmt);
+            return new Job(Utils.getAutoIncrementKey(insertStmt), jobName);
         }
     }
 

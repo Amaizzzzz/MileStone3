@@ -29,15 +29,8 @@ public class StatTypeDao {
 			ps.setString(2, description);
 			ps.executeUpdate();
 
-			// Retrieve the auto-generated key
-			try (ResultSet rs = ps.getGeneratedKeys()) {
-				if (rs.next()) {
-					int newID = rs.getInt(1);
-					return getStatTypeByID(cxn, newID);
-				}
-			}
+			return new StatType(Utils.getAutoIncrementKey(ps), name, description);
 		}
-		return null;
 	}
 
 	/**

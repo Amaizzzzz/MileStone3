@@ -12,6 +12,23 @@ public class CharacterCurrencyDao {
         // Private constructor to prevent instantiation
     }
 
+    public static CharacterCurrency create(Connection cxn, Character character, Currency currency, int currentAmount, boolean isCurrent) throws SQLException {
+        final String insertCharacterCurrency = """
+            INSERT INTO Character_Currency(characterID, currencyID, currentAmount, isCurrent)
+            VALUES (?, ?, ?, ?);
+        """;
+
+        try (PreparedStatement insertStmt = cxn.prepareStatement(insertCharacterCurrency)) {
+            insertStmt.setInt(1, character.getCharacterID());
+            insertStmt.setInt(2, currency.getCurrencyID());
+            insertStmt.setInt(3, currentAmount);
+            insertStmt.setBoolean(4, isCurrent);
+            insertStmt.executeUpdate();
+
+            return new CharacterCurrency(character, currency, currentAmount, isCurrent);
+        }
+    }
+
     public static List<CharacterCurrency> getCurrenciesByCharacterId(Connection cxn, int characterID) throws SQLException {
         List<CharacterCurrency> currencies = new ArrayList<>();
         String query = "SELECT * FROM Character_Currency WHERE characterID = ?";

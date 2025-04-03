@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cs5200project.model.ConsumablesStatsBonus;
-import cs5200project.model.Item;
+import cs5200project.model.Consumable;
 import cs5200project.model.Statistic;
 
 public class ConsumablesStatsBonusDao {
@@ -17,7 +17,7 @@ public class ConsumablesStatsBonusDao {
     // Prevent instantiation
   }
 
-  public static ConsumablesStatsBonus create(Connection cxn, Item item,
+  public static ConsumablesStatsBonus create(Connection cxn, Consumable item,
       Statistic stats, float percentageBonus, int bonusCap) throws SQLException {
     String insertBonus = """
                 INSERT INTO ConsumablesStatsBonus (itemID, statID, percentageBonus, bonusCap)
@@ -34,7 +34,7 @@ public class ConsumablesStatsBonusDao {
     }
   }
 
-  public static ConsumablesStatsBonus getByItemIdAndStatId(Connection cxn, Item item, Statistic stats) throws SQLException {
+  public static ConsumablesStatsBonus getByItemIdAndStatId(Connection cxn, Consumable item, Statistic stats) throws SQLException {
     String selectBonus = """
                 SELECT * FROM ConsumablesStatsBonus
                 WHERE itemID = ? AND statID = ?;
@@ -64,7 +64,7 @@ public class ConsumablesStatsBonusDao {
       try (ResultSet results = stmt.executeQuery()) {
         while (results.next()) {
           int itemId = results.getInt("itemID");
-          Item item = ItemDao.getItemById(cxn, itemId);
+          Consumable item = ConsumableDao.getByConsumablesId(cxn, itemId);
           int statId = results.getInt("statID");
           Statistic stats = StatisticDao.getStatisticByID(cxn, statId);
           float percentageBonus = results.getFloat("percentageBonus");

@@ -8,40 +8,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cs5200project.model.GearStatisticBonus;
-import cs5200project.model.Item;
+import cs5200project.model.Gear;
 import cs5200project.model.Statistic;
 
 public class GearStatisticBonusDao {
 	private GearStatisticBonusDao() {
 	}
 
-	public static GearStatisticBonus create(Connection cxn, Item item,
+	public static GearStatisticBonus create(Connection cxn, Gear gear,
 			Statistic stats, int bonusValue) throws SQLException {
 		String insertBonus = """
 				INSERT INTO GearStatisticBonus (itemID, statID, bonusValue)
 				VALUES (?, ?, ?);""";
 		try (PreparedStatement insertStmt = cxn.prepareStatement(insertBonus)) {
-			insertStmt.setInt(1, item.getItemId());
+			insertStmt.setInt(1, gear.getItemId());
 			insertStmt.setInt(2, stats.getStatisticID());
 			insertStmt.setInt(3, bonusValue);
 			insertStmt.executeUpdate();
-			return new GearStatisticBonus(item, stats, bonusValue);
+			return new GearStatisticBonus(gear, stats, bonusValue);
 		}
 	}
 
 	public static GearStatisticBonus getGearStatisticBonusByItemIdAndStatId(
-			Connection cxn, Item item, Statistic stats) throws SQLException {
+			Connection cxn, Gear gear, Statistic stats) throws SQLException {
 		String selectBonus = """
 				SELECT * FROM GearStatisticBonus
 					WHERE itemID = ? AND statID = ?;
 				""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectBonus)) {
-			selectStmt.setInt(1, item.getItemId());
+			selectStmt.setInt(1, gear.getItemId());
 			selectStmt.setInt(2, stats.getStatisticID());
 
 			try (ResultSet results = selectStmt.executeQuery()) {
 				if (results.next()) {
-					return new GearStatisticBonus(item, stats,
+					return new GearStatisticBonus(gear, stats,
 							results.getInt("bonusValue"));
 				} else {
 					return null;
@@ -60,12 +60,12 @@ public class GearStatisticBonusDao {
 			try (ResultSet results = stmt.executeQuery()) {
 				while (results.next()) {
 					int itemId = results.getInt("itemID");
-					Item item = ItemDao.getItemById(cxn, itemId);
+					Gear gear = GearDao.getGearByItemID(cxn, itemId);
 					int statId = results.getInt("statID");
 					Statistic stats = StatisticDao.getStatisticByID(cxn,
 							statId);
 					bonusList.add(new GearStatisticBonus(
-							item, stats, results.getInt("bonusValue")));
+							gear, stats, results.getInt("bonusValue")));
 				}
 			}
 		}

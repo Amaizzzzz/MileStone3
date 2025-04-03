@@ -12,17 +12,17 @@ public class CharacterStatsDao {
         // Private constructor to prevent instantiation
     }
 
-    public static CharacterStats create(Connection connection, CharacterStats stat) throws SQLException {
+    public static CharacterStats create(Connection connection, Character character, Statistic stat, int charValue) throws SQLException {
         String insertQuery = "INSERT INTO Character_Stats (characterID, statID, charValue) VALUES (?, ?, ?)";
         
         try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-            statement.setInt(1, stat.getCharacterID());
-            statement.setInt(2, stat.getStatID());
-            statement.setInt(3, stat.getCharValue());
+            statement.setInt(1, character.getCharacterID());
+            statement.setInt(2, stat.getStatisticID());
+            statement.setInt(3, charValue);
             
             statement.executeUpdate();
         }
-        return stat;
+        return new CharacterStats(character, stat, charValue);
     }
 
     public static List<CharacterStats> getStatsByCharacterId(Connection cxn, int characterID) throws SQLException {

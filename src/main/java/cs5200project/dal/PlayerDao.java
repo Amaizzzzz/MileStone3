@@ -42,14 +42,7 @@ public class PlayerDao {
 		ps.setString(3, serverRegion);
 		ps.executeUpdate();
 
-		ResultSet rs = ps.getGeneratedKeys();
-		int playerID = -1;
-		if (rs.next()) {
-			playerID = rs.getInt(1);
-		}
-
-		Player newPlayer = new Player(playerID, username, email, serverRegion);
-		return newPlayer;
+		return new Player(Utils.getAutoIncrementKey(ps), username, email, serverRegion);
 	}
 
 	public static Player updateUsername(Connection cxn, Player player,
@@ -66,7 +59,7 @@ public class PlayerDao {
 
 	public static void delete(Connection cxn, Player player)
 			throws SQLException {
-		String sql = "DELETE FROM Player WHERE playerID = ?";
+		String sql = "DELETE FROM Player WHERE playerID = ?";	
 		PreparedStatement ps = cxn.prepareStatement(sql);
 		ps.setInt(1, player.getPlayerID());
 		ps.executeUpdate();

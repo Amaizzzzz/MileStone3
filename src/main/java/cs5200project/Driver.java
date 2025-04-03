@@ -24,55 +24,127 @@ public class Driver {
             // Create test data for each table
             System.out.println("Creating test data...");
 
-            // 1. Create Player
-            Player player = new Player("player1", "John", "Doe", "john@example.com", "password123");
-            PlayerDao.create(cxn, player);
-            System.out.println("Created player: " + player.getUserName());
+            // 1. Create Player: Player constructor didn't update, combine first and last name and have region
+            Player player = PlayerDao.create(cxn, "John Doe", "john@examples.com", "NA");
+            System.out.println("Created player: " + player.getUsername());
 
             // 2. Create Race
-            Race race = new Race("Human", "A versatile race", 5, 5, 5, 5, 5, 5);
-            RaceDao.create(cxn, race);
+            Race race = RaceDao.create(cxn, "Human");
             System.out.println("Created race: " + race.getRaceName());
 
             // 3. Create Character
-            Character character = new Character(1, "Warrior1", 1, 1, 1);
-            CharacterDao.create(cxn, character);
-            System.out.println("Created character: " + character.getCharacterName());
+            // Character table in SQL has: characterID, playerID, firstName, lastName, raceID, creationTime, isNewPlayer, currentJobID
+            int playerID = player.getPlayerID();
+            int raceID = race.getRaceID();
+            int currentJobID = 1; // Default to first job
+            boolean isNewPlayer = true;
+            String firstName = "Alice";
+            String lastName = "Smith";
+            
+            Character character = CharacterDao.create(cxn, playerID, firstName, lastName, raceID, new java.util.Date(), isNewPlayer, currentJobID);
+            System.out.println("Created character: " + firstName + " " + lastName);
 
             // 4. Create CharacterStats
-            CharacterStat stats = new CharacterStat(1);
-            CharacterStatsDao.create(cxn, stats);
-            System.out.println("Created character stats for character ID: " + stats.getCharacterId());
+            // Character_Stats in SQL has: characterID, statID, charValue
+            int characterID = character.getCharacterID();
+            
+            // First, create a Statistic
+            int statTypeID = 1; // HP stat type
+            int statValue = 100;
+            Statistic stat = StatisticDao.create(cxn, statTypeID, statValue);
+            int statID = stat.getStatID();
+            
+            // Then associate it with the character
+            int charValue = 150; // Character's base HP value
+            CharacterStatsDao.create(cxn, characterID, statID, charValue);
+            System.out.println("Created character stats for character ID: " + characterID);
 
             // 5. Create CharacterJob
-            CharacterJob job = new CharacterJob(1, 1, true, 0);
-            CharacterJobDao.create(cxn, job);
-            System.out.println("Created character job for character ID: " + job.getCharacterID());
+            // Character_Job in SQL has: characterID, jobID, isUnlocked, XP
+            
+            // First, create a Job
+            String jobName = "Warrior";
+            Job warriorJob = JobDao.create(cxn, jobName);
+            int jobID = warriorJob.getJobID();
+            System.out.println("Created job: " + jobName);
+            
+            // Then associate it with the character
+            boolean isUnlocked = true;
+            int xp = 50;
+            CharacterJobDao.create(cxn, characterID, jobID, isUnlocked, xp);
+            System.out.println("Created character job mapping for character ID: " + characterID);
 
-            // 6. Create Job
-            Job warriorJob = new Job("Warrior", "A melee combat specialist");
-            JobDao.create(cxn, warriorJob);
-            System.out.println("Created job: " + warriorJob.getJobName());
+            // 6. Create Item
+            // Item in SQL has: itemID, itemName, itemLevel, maxStackSize, price, quantity
+            String itemName = "Iron Sword";
+            int itemLevel = 10;
+            int maxStackSize = 1;
+            double price = 100.0;
+            int quantity = 5;
+            
+            Item item = ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
+            int itemID = item.getItemID();
+            System.out.println("Created item: " + itemName + " with ID: " + itemID);
 
-            // 7. Create Item
-            Item item = new Item(1, "Iron Sword", 1, 1, 100.0, 1);
-            ItemDao.create(cxn, item);
-            System.out.println("Created item: " + item.getItemName());
+            // 7. Create Weapon
+            // Weapon in SQL has: itemID, weaponType, gearSlotID, jobID, damage, weaponDurability, rankValue
+            
+            // First create another item to be associated with the weapon
+            String weaponItemName = "Steel Sword";
+            Item weaponItem = ItemDao.create(cxn, weaponItemName, itemLevel, maxStackSize, price, quantity);
+            int weaponItemID = weaponItem.getItemID();
+            
+            // Now create the weapon with proper enum values from SQL
+            String weaponType = "Sword"; // From ENUM('Sword', 'Hammer', 'Axe', etc.)
+            int gearSlotID = 4; // WeaponHand slot
+            int damage = 15;
+            String weaponDurability = "New"; // From ENUM('New', 'Slight', 'Used', 'Old')
+            String rankValue = "Blue"; // From ENUM('White', 'Green', 'Blue', 'Purple', 'Orange', 'Red')
+            
+            WeaponDao.create(cxn, weaponItemID, weaponType, gearSlotID, jobID, damage, weaponDurability, rankValue);
+            System.out.println("Created weapon: " + weaponItemName + " with ID: " + weaponItemID);
 
-            // 8. Create Weapon
-            Weapon sword = new Weapon(1, "Iron Sword", 1, 1, 100.0, 1, 1, 10, 1, "Sword", 1, "Warrior");
-            WeaponDao.create(cxn, sword);
-            System.out.println("Created weapon: " + sword.getItemName());
+            // 8. Create Consumable
+            // Consumables in SQL has: itemID, consumableType, consumableDescription, source
+            
+            // First create an item to be associated with the consumable
+            String consumableItemName = "Health Potion";
+            int consumableItemLevel = 5;
+            int consumableMaxStack = 10;
+            double consumablePrice = 50.0;
+            int consumableQuantity = 20;
+            
+            Item consumableItem = ItemDao.create(cxn, consumableItemName, consumableItemLevel, 
+                                               consumableMaxStack, consumablePrice, consumableQuantity);
+            int consumableItemID = consumableItem.getItemID();
+            
+            // Now create the consumable with proper enum values from SQL
+            String consumableType = "Medicine"; // From ENUM('Groceries', 'Medicine', 'Throwing', 'Material', 'Ammunition')
+            String consumableDescription = "Heals a small amount of HP when consumed";
+            String source = "Apothecary";
+            
+            ConsumablesDao.create(cxn, consumableItemID, consumableType, consumableDescription, source);
+            System.out.println("Created consumable: " + consumableItemName + " with ID: " + consumableItemID);
 
-            // 9. Create Consumable
-            Consumable potion = new Consumable(2, "Health Potion", 1, 10, 50.0, 1, 1, 50, 0, 0, "Healing", true, 30);
-            ConsumablesDao.create(cxn, potion);
-            System.out.println("Created consumable: " + potion.getItemName());
-
-            // 10. Create Gear
-            Gear gear = new Gear(3, "Iron Helmet", 1, 1, 1, 75.0, 1);
-            GearDao.create(cxn, gear);
-            System.out.println("Created gear: " + gear.getItemName());
+            // 9. Create Gear
+            // Gear in SQL has: itemID, requiredLevel
+            
+            // First create an item to be associated with the gear
+            String gearItemName = "Iron Helmet";
+            int gearItemLevel = 15;
+            int gearMaxStack = 1;
+            double gearPrice = 75.0;
+            int gearQuantity = 3;
+            
+            Item gearItem = ItemDao.create(cxn, gearItemName, gearItemLevel, 
+                                          gearMaxStack, gearPrice, gearQuantity);
+            int gearItemID = gearItem.getItemID();
+            
+            // Now create the gear
+            int requiredLevel = 10;
+            
+            GearDao.create(cxn, gearItemID, requiredLevel);
+            System.out.println("Created gear: " + gearItemName + " with ID: " + gearItemID);
 
             // 11. Create GearSlot
             GearSlot slot = new GearSlot(1, "Head", "Head armor slot");
@@ -134,10 +206,13 @@ public class Driver {
             LevelThresholdDao.create(cxn, threshold);
             System.out.println("Created level threshold for level: " + threshold.getLevel());
 
-            // 23. Create Clan
-            Clan clan = new Clan(1, "Warriors Guild", "A guild for warriors", 1);
-            ClanDao.create(cxn, clan);
-            System.out.println("Created clan: " + clan.getClanName());
+            // 22. Create Clan
+            // Clan in SQL has: clanID, clanName, raceID
+            String clanName = "Warriors Guild";
+            // We already have raceID from earlier
+            
+            int clanID = ClanDao.create(cxn, clanName, race);
+            System.out.println("Created clan: " + clanName + " with ID: " + clanID);
 
             // Test reading records
             System.out.println("\nTesting record retrieval...");
@@ -196,193 +271,173 @@ public class Driver {
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Race (
-                    raceId INT AUTO_INCREMENT,
-                    raceName VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    strengthBonus INT NOT NULL,
-                    dexterityBonus INT NOT NULL,
-                    constitutionBonus INT NOT NULL,
-                    intelligenceBonus INT NOT NULL,
-                    wisdomBonus INT NOT NULL,
-                    charismaBonus INT NOT NULL,
-                    CONSTRAINT pk_Race_raceId PRIMARY KEY (raceId),
-                    UNIQUE KEY uk_Race_raceName (raceName)
+                    raceID INT PRIMARY KEY AUTO_INCREMENT,
+                    raceName VARCHAR(50) NOT NULL UNIQUE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Job (
-                    jobId INT AUTO_INCREMENT,
-                    jobName VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    CONSTRAINT pk_Job_jobId PRIMARY KEY (jobId),
-                    UNIQUE KEY uk_Job_jobName (jobName)
+                    jobID INT PRIMARY KEY AUTO_INCREMENT, 
+                    jobName VARCHAR(50) NOT NULL UNIQUE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
-                CREATE TABLE Character (
-                    characterId INT AUTO_INCREMENT,
-                    characterName VARCHAR(255) NOT NULL,
-                    playerId INT NOT NULL,
-                    raceId INT NOT NULL,
-                    level INT NOT NULL,
-                    CONSTRAINT pk_Character_characterId PRIMARY KEY (characterId),
-                    CONSTRAINT fk_Character_playerId FOREIGN KEY (playerId) REFERENCES Player(playerId),
-                    CONSTRAINT fk_Character_raceId FOREIGN KEY (raceId) REFERENCES Race(raceId)
+                CREATE TABLE `Character` (
+                    characterID INT PRIMARY KEY AUTO_INCREMENT,
+                    playerID INT NOT NULL,
+                    firstName VARCHAR(50) NOT NULL,
+                    lastName VARCHAR(50) NOT NULL,
+                    raceID INT NOT NULL,
+                    creationTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    isNewPlayer BOOLEAN NOT NULL DEFAULT TRUE,
+                    currentJobID INT NOT NULL DEFAULT 1,
+                    CONSTRAINT fk_character_player FOREIGN KEY (playerID) REFERENCES Player(playerID)
+                        ON DELETE RESTRICT ON UPDATE CASCADE,
+                    CONSTRAINT fk_character_race FOREIGN KEY (raceID) REFERENCES Race(raceID)
+                        ON DELETE RESTRICT ON UPDATE CASCADE,
+                    CONSTRAINT fk_character_currentJob FOREIGN KEY (currentJobID) REFERENCES Job(jobID)
+                        ON DELETE RESTRICT ON UPDATE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE CharacterStats (
-                    characterId INT NOT NULL,
-                    strength INT NOT NULL,
-                    dexterity INT NOT NULL,
-                    constitution INT NOT NULL,
-                    intelligence INT NOT NULL,
-                    wisdom INT NOT NULL,
-                    charisma INT NOT NULL,
-                    CONSTRAINT pk_CharacterStats_characterId PRIMARY KEY (characterId),
-                    CONSTRAINT fk_CharacterStats_characterId FOREIGN KEY (characterId) REFERENCES Character(characterId)
+                    characterID INT NOT NULL,
+                    statID INT NOT NULL,
+                    value INT UNSIGNED NOT NULL DEFAULT 0,
+                    CONSTRAINT pk_CharacterStatistic_characterID_statID PRIMARY KEY (characterID, statID),
+                    CONSTRAINT fk_CharacterStatistic_characterID FOREIGN KEY (characterID) REFERENCES `Character`(characterID)
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_CharacterStatistic_statID FOREIGN KEY (statID) REFERENCES Statistic(statID)
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE CharacterJob (
-                    characterId INT NOT NULL,
-                    jobId INT NOT NULL,
-                    isPrimary BOOLEAN NOT NULL,
-                    jobLevel INT NOT NULL,
-                    CONSTRAINT pk_CharacterJob_characterId_jobId PRIMARY KEY (characterId, jobId),
-                    CONSTRAINT fk_CharacterJob_characterId FOREIGN KEY (characterId) REFERENCES Character(characterId),
-                    CONSTRAINT fk_CharacterJob_jobId FOREIGN KEY (jobId) REFERENCES Job(jobId)
+                    characterID INT NOT NULL,
+                    jobID INT NOT NULL,
+                    isUnlocked BOOLEAN DEFAULT FALSE,
+                    XP INT UNSIGNED NULL DEFAULT 0,
+                    CONSTRAINT pk_character_job PRIMARY KEY (characterID, jobID),
+                    CONSTRAINT fk_character_job_character FOREIGN KEY (characterID) REFERENCES `Character`(characterID)
+                        ON DELETE RESTRICT ON UPDATE CASCADE,
+                    CONSTRAINT fk_character_job_job FOREIGN KEY (jobID) REFERENCES Job(jobID)
+                        ON DELETE RESTRICT ON UPDATE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Item (
-                    itemId INT AUTO_INCREMENT,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemType INT NOT NULL,
-                    rarity INT NOT NULL,
-                    value DECIMAL(10,2) NOT NULL,
-                    levelRequirement INT NOT NULL,
-                    CONSTRAINT pk_Item_itemId PRIMARY KEY (itemId)
+                    itemID INT PRIMARY KEY AUTO_INCREMENT,
+                    itemName VARCHAR(255) NOT NULL UNIQUE,
+                    itemLevel INT UNSIGNED NOT NULL,
+                    maxStackSize INT UNSIGNED DEFAULT 1,
+                    price DECIMAL(10,2) UNSIGNED NOT NULL,
+                    quantity INT UNSIGNED NOT NULL
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Weapon (
-                    itemId INT NOT NULL,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemType INT NOT NULL,
-                    rarity INT NOT NULL,
-                    value DECIMAL(10,2) NOT NULL,
-                    levelRequirement INT NOT NULL,
-                    damage INT NOT NULL,
-                    attackSpeed INT NOT NULL,
-                    weaponTypeId INT NOT NULL,
-                    weaponType VARCHAR(255) NOT NULL,
-                    jobRequirementId INT NOT NULL,
-                    jobRequirement VARCHAR(255) NOT NULL,
-                    CONSTRAINT pk_Weapon_itemId PRIMARY KEY (itemId),
-                    CONSTRAINT fk_Weapon_itemId FOREIGN KEY (itemId) REFERENCES Item(itemId)
+                    itemID INT PRIMARY KEY,
+                    weaponType ENUM('Sword', 'Hammer', 'Axe', 'Spear', 'Stick', 'Bow', 'Crossbow', 'Wand', 'Gun', 'Shield', 'Knife', 'Dart', 'Fist Gloves') NOT NULL,
+                    gearSlotID INT NOT NULL,
+                    jobID INT NOT NULL,
+                    damage INT UNSIGNED NOT NULL DEFAULT 0,
+                    weaponDurability ENUM('New', 'Slight', 'Used', 'Old') NOT NULL DEFAULT 'New',
+                    rankValue ENUM('White', 'Green', 'Blue', 'Purple', 'Orange', 'Red') NOT NULL DEFAULT 'White',
+                    CONSTRAINT fk_Weapon_itemID FOREIGN KEY (itemID) REFERENCES Item(itemID) 
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_Weapon_gearSlotID FOREIGN KEY (gearSlotID) REFERENCES GearSlot(slotID) 
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_Weapon_jobID FOREIGN KEY (jobID) REFERENCES Job(jobID) 
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Consumable (
-                    itemId INT NOT NULL,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemType INT NOT NULL,
-                    rarity INT NOT NULL,
-                    value DECIMAL(10,2) NOT NULL,
-                    levelRequirement INT NOT NULL,
-                    effectType INT NOT NULL,
-                    effectValue INT NOT NULL,
-                    duration INT NOT NULL,
-                    cooldown INT NOT NULL,
-                    effectCategory VARCHAR(255) NOT NULL,
-                    isStackable BOOLEAN NOT NULL,
-                    maxStackSize INT NOT NULL,
-                    CONSTRAINT pk_Consumable_itemId PRIMARY KEY (itemId),
-                    CONSTRAINT fk_Consumable_itemId FOREIGN KEY (itemId) REFERENCES Item(itemId)
+                    itemID INT PRIMARY KEY,
+                    consumableType ENUM('Groceries', 'Medicine', 'Throwing', 'Material', 'Ammunition') NOT NULL,
+                    consumableDescription TEXT NOT NULL,
+                    source VARCHAR(255) NOT NULL,
+                    CONSTRAINT fk_Consumables_itemID FOREIGN KEY (itemID) REFERENCES Item(itemID) 
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE GearSlot (
-                    slotId INT AUTO_INCREMENT,
-                    slotName VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    CONSTRAINT pk_GearSlot_slotId PRIMARY KEY (slotId)
+                    slotID INT PRIMARY KEY AUTO_INCREMENT,
+                    slotName VARCHAR(50) NOT NULL UNIQUE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Gear (
-                    itemId INT NOT NULL,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemType INT NOT NULL,
-                    rarity INT NOT NULL,
-                    slotId INT NOT NULL,
-                    value DECIMAL(10,2) NOT NULL,
-                    levelRequirement INT NOT NULL,
-                    CONSTRAINT pk_Gear_itemId PRIMARY KEY (itemId),
-                    CONSTRAINT fk_Gear_itemId FOREIGN KEY (itemId) REFERENCES Item(itemId),
-                    CONSTRAINT fk_Gear_slotId FOREIGN KEY (slotId) REFERENCES GearSlot(slotId)
+                    itemID INT PRIMARY KEY,
+                    requiredLevel INT UNSIGNED NOT NULL,
+                    CONSTRAINT fk_Gear_itemID FOREIGN KEY (itemID) REFERENCES Item(itemID) 
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE GearInstance (
-                    instanceId INT AUTO_INCREMENT,
-                    gearId INT NOT NULL,
-                    characterId INT NOT NULL,
-                    durability INT NOT NULL,
-                    CONSTRAINT pk_GearInstance_instanceId PRIMARY KEY (instanceId),
-                    CONSTRAINT fk_GearInstance_gearId FOREIGN KEY (gearId) REFERENCES Gear(itemId),
-                    CONSTRAINT fk_GearInstance_characterId FOREIGN KEY (characterId) REFERENCES Character(characterId)
+                    gearInstanceID INT PRIMARY KEY AUTO_INCREMENT,
+                    itemID INT NOT NULL,
+                    durability TINYINT UNSIGNED NOT NULL DEFAULT 100,
+                    characterID INT,
+                    CONSTRAINT fk_GearInstance_itemID FOREIGN KEY (itemID) REFERENCES Gear(itemID)
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_GearInstance_characterID FOREIGN KEY (characterID) REFERENCES `Character`(characterID)
+                        ON DELETE SET NULL,
+                    CONSTRAINT chk_GearInstance_durability CHECK (durability BETWEEN 0 AND 100)
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE GearJob (
-                    gearId INT NOT NULL,
-                    jobId INT NOT NULL,
-                    CONSTRAINT pk_GearJob_gearId_jobId PRIMARY KEY (gearId, jobId),
-                    CONSTRAINT fk_GearJob_gearId FOREIGN KEY (gearId) REFERENCES Gear(itemId),
-                    CONSTRAINT fk_GearJob_jobId FOREIGN KEY (jobId) REFERENCES Job(jobId)
+                    itemID INT NOT NULL,
+                    jobID INT NOT NULL,
+                    CONSTRAINT pk_GearJob_itemID_jobID PRIMARY KEY (itemID, jobID),
+                    CONSTRAINT fk_GearJob_itemID FOREIGN KEY (itemID) REFERENCES Gear(itemID) 
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_GearJob_jobID FOREIGN KEY (jobID) REFERENCES Job(jobID) 
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE StatType (
-                    statTypeId INT AUTO_INCREMENT,
-                    statName VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    CONSTRAINT pk_StatType_statTypeId PRIMARY KEY (statTypeId)
+                    statTypeID INT PRIMARY KEY AUTO_INCREMENT,
+                    statType VARCHAR(50) NOT NULL UNIQUE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Statistic (
-                    statId INT AUTO_INCREMENT,
-                    statTypeId INT NOT NULL,
-                    value INT NOT NULL,
-                    CONSTRAINT pk_Statistic_statId PRIMARY KEY (statId),
-                    CONSTRAINT fk_Statistic_statTypeId FOREIGN KEY (statTypeId) REFERENCES StatType(statTypeId)
+                    statID INT PRIMARY KEY AUTO_INCREMENT, 
+                    statTypeID INT NOT NULL,
+                    statValue INT UNSIGNED DEFAULT 0,
+                    CONSTRAINT fk_Statistic_statTypeID FOREIGN KEY (statTypeID) REFERENCES StatType(statTypeID)
+                        ON DELETE CASCADE
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE GearStatisticBonus (
-                    gearId INT NOT NULL,
-                    statTypeId INT NOT NULL,
-                    bonusValue INT NOT NULL,
-                    CONSTRAINT pk_GearStatisticBonus_gearId_statTypeId PRIMARY KEY (gearId, statTypeId),
-                    CONSTRAINT fk_GearStatisticBonus_gearId FOREIGN KEY (gearId) REFERENCES Gear(itemId),
-                    CONSTRAINT fk_GearStatisticBonus_statTypeId FOREIGN KEY (statTypeId) REFERENCES StatType(statTypeId)
+                    itemID INT NOT NULL,
+                    statID INT NOT NULL,
+                    bonusValue INT UNSIGNED NOT NULL DEFAULT 0,
+                    CONSTRAINT pk_GearStatisticBonus_itemID_statID PRIMARY KEY (itemID, statID),
+                    CONSTRAINT fk_GearStatisticBonus_itemID FOREIGN KEY (itemID) REFERENCES Gear(itemID) 
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_GearStatisticBonus_statID FOREIGN KEY (statID) REFERENCES Statistic(statID) 
+                        ON DELETE CASCADE
                 );"""
             );
 
@@ -392,7 +447,7 @@ public class Driver {
                     statTypeId INT NOT NULL,
                     bonusValue INT NOT NULL,
                     CONSTRAINT pk_WeaponStatsBonus_weaponId_statTypeId PRIMARY KEY (weaponId, statTypeId),
-                    CONSTRAINT fk_WeaponStatsBonus_weaponId FOREIGN KEY (weaponId) REFERENCES Weapon(itemId),
+                    CONSTRAINT fk_WeaponStatsBonus_weaponId FOREIGN KEY (weaponId) REFERENCES Weapon(itemID),
                     CONSTRAINT fk_WeaponStatsBonus_statTypeId FOREIGN KEY (statTypeId) REFERENCES StatType(statTypeId)
                 );"""
             );
@@ -403,7 +458,7 @@ public class Driver {
                     statTypeId INT NOT NULL,
                     bonusValue INT NOT NULL,
                     CONSTRAINT pk_ConsumablesStatsBonus_consumableId_statTypeId PRIMARY KEY (consumableId, statTypeId),
-                    CONSTRAINT fk_ConsumablesStatsBonus_consumableId FOREIGN KEY (consumableId) REFERENCES Consumable(itemId),
+                    CONSTRAINT fk_ConsumablesStatsBonus_consumableId FOREIGN KEY (consumableId) REFERENCES Consumable(itemID),
                     CONSTRAINT fk_ConsumablesStatsBonus_statTypeId FOREIGN KEY (statTypeId) REFERENCES StatType(statTypeId)
                 );"""
             );
@@ -422,41 +477,46 @@ public class Driver {
                 CREATE TABLE CharacterCurrency (
                     characterId INT NOT NULL,
                     currencyId INT NOT NULL,
-                    amount INT NOT NULL,
+                    currentAmount INT NOT NULL,
+                    isCurrent BOOLEAN NOT NULL DEFAULT TRUE,
                     CONSTRAINT pk_CharacterCurrency_characterId_currencyId PRIMARY KEY (characterId, currencyId),
-                    CONSTRAINT fk_CharacterCurrency_characterId FOREIGN KEY (characterId) REFERENCES Character(characterId),
-                    CONSTRAINT fk_CharacterCurrency_currencyId FOREIGN KEY (currencyId) REFERENCES Currency(currencyId)
+                    CONSTRAINT fk_CharacterCurrency_characterId FOREIGN KEY (characterId) REFERENCES Character(characterID),
+                    CONSTRAINT fk_CharacterCurrency_currencyId FOREIGN KEY (currencyId) REFERENCES Currency(currencyID)
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE InventorySlot (
-                    slotId INT AUTO_INCREMENT,
-                    characterId INT NOT NULL,
-                    itemId INT NOT NULL,
-                    quantity INT NOT NULL,
-                    CONSTRAINT pk_InventorySlot_slotId PRIMARY KEY (slotId),
-                    CONSTRAINT fk_InventorySlot_characterId FOREIGN KEY (characterId) REFERENCES Character(characterId),
-                    CONSTRAINT fk_InventorySlot_itemId FOREIGN KEY (itemId) REFERENCES Item(itemId)
+                    characterID INT NOT NULL,
+                    itemID INT NOT NULL,
+                    slotNum TINYINT UNSIGNED NOT NULL,
+                    quantity TINYINT UNSIGNED NOT NULL DEFAULT 1,
+                    CONSTRAINT pk_InventorySlot_characterID_slotNum PRIMARY KEY (characterID, slotNum),
+                    CONSTRAINT fk_InventorySlot_characterID FOREIGN KEY (characterID) REFERENCES `Character`(characterID)
+                        ON DELETE CASCADE,
+                    CONSTRAINT fk_InventorySlot_itemID FOREIGN KEY (itemID) REFERENCES Item(itemID)
+                        ON DELETE CASCADE,
+                    CONSTRAINT chk_InventorySlot_slotNum CHECK (slotNum BETWEEN 1 AND 100),
+                    CONSTRAINT chk_InventorySlot_quantity CHECK (quantity > 0)
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE LevelThreshold (
-                    level INT NOT NULL,
-                    experienceRequired INT NOT NULL,
-                    CONSTRAINT pk_LevelThreshold_level PRIMARY KEY (level)
+                    level TINYINT UNSIGNED PRIMARY KEY,
+                    experienceRequired INT UNSIGNED NOT NULL,
+                    CONSTRAINT chk_LevelThreshold_level CHECK (level BETWEEN 1 AND 99),
+                    CONSTRAINT chk_LevelThreshold_experienceRequired CHECK (experienceRequired >= 0)
                 );"""
             );
 
             cxn.createStatement().executeUpdate("""
                 CREATE TABLE Clan (
-                    clanId INT AUTO_INCREMENT,
-                    clanName VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    leaderId INT NOT NULL,
-                    CONSTRAINT pk_Clan_clanId PRIMARY KEY (clanId),
-                    CONSTRAINT fk_Clan_leaderId FOREIGN KEY (leaderId) REFERENCES Character(characterId)
+                    clanID INT PRIMARY KEY AUTO_INCREMENT,
+                    clanName VARCHAR(50) NOT NULL UNIQUE,
+                    raceID INT NOT NULL,
+                    CONSTRAINT fk_Clan_raceID FOREIGN KEY (raceID) REFERENCES Race(raceID)
+                        ON UPDATE CASCADE ON DELETE RESTRICT
                 );"""
             );
             
