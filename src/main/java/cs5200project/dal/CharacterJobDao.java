@@ -12,6 +12,20 @@ public class CharacterJobDao {
         // Private constructor to prevent instantiation
     }
 
+    public static CharacterJob create(Connection connection, CharacterJob job) throws SQLException {
+        String insertQuery = "INSERT INTO Character_Job (characterID, jobID, isUnlocked, XP) VALUES (?, ?, ?, ?)";
+        
+        try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
+            statement.setInt(1, job.getCharacterID());
+            statement.setInt(2, job.getJobID());
+            statement.setBoolean(3, job.isUnlocked());
+            statement.setInt(4, job.getXp());
+            
+            statement.executeUpdate();
+        }
+        return job;
+    }
+
     public static List<CharacterJob> getJobsByCharacterId(Connection cxn, int characterID) throws SQLException {
         List<CharacterJob> jobs = new ArrayList<>();
         String query = "SELECT * FROM Character_Job WHERE characterID = ?";

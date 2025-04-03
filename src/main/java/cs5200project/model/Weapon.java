@@ -2,7 +2,7 @@ package cs5200project.model;
 
 import java.util.Objects;
 
-public class Weapon {
+public class Weapon extends Item {
 
   // Instants fields
   public enum WeaponType {
@@ -17,134 +17,124 @@ public class Weapon {
     WHITE, GREEN, BLUE, PURPLE, ORANGE, RED
   }
 
-  private int itemID;
-  private String weaponName;
-  private WeaponType weaponType;
-  private int gearSlotID;
-  private int jobID;
-  private int requiredLevel;
+  private int weaponId;
   private int damage;
+  private int attackSpeed;
+  private String weaponType;
+  private int requiredLevel;
+  private String requiredJob;
   private WeaponDurability weaponDurability;
   private RankValue rankValue;
 
   // Constructor
-  public Weapon(int itemID, String weaponName, WeaponType weaponType, int gearSlotID, int jobID,
-      int requiredLevel, int damage, WeaponDurability weaponDurability, RankValue rankValue) {
-    this.itemID = itemID;
-    this.weaponName = weaponName;
-    this.weaponType = weaponType;
-    this.gearSlotID = gearSlotID;
-    this.jobID = jobID;
-    this.requiredLevel = requiredLevel;
+  public Weapon(int itemId, String itemName, int itemLevel, int maxStackSize,
+                double price, int quantity, int weaponId, int damage, int attackSpeed,
+                String weaponType, int requiredLevel, String requiredJob,
+                WeaponDurability weaponDurability, RankValue rankValue) {
+    super(itemId, itemName, itemLevel, maxStackSize, price, quantity);
+    this.weaponId = weaponId;
     this.damage = damage;
+    this.attackSpeed = attackSpeed;
+    this.weaponType = weaponType;
+    this.requiredLevel = requiredLevel;
+    this.requiredJob = requiredJob;
     this.weaponDurability = weaponDurability;
     this.rankValue = rankValue;
   }
 
-  // Getters and Setters
-  public int getItemID() {
-    return itemID;
-  }
-
-  public void setItemID(int itemID) {
-    this.itemID = itemID;
-  }
-
-  public String getWeaponName() {
-    return weaponName;
-  }
-
-  public void setWeaponName(String weaponName){
-    this.weaponName = weaponName;
-  }
-
-  public WeaponType getWeaponType() {
-    return weaponType;
-  }
-
-  public void setWeaponType(WeaponType weaponType) {
-    this.weaponType = weaponType;
-  }
-
-  public int getGearSlotID() {
-    return gearSlotID;
-  }
-
-  public void setGearSlotID(int gearSlotID) {
-    this.gearSlotID = gearSlotID;
-  }
-
-  public int getJobID() {
-    return jobID;
-  }
-
-  public void setJobID(int jobID) {
-    this.jobID = jobID;
-  }
-
-  public int getRequiredLevel() {
-    return requiredLevel;
-  }
-
-  public void setRequiredLevel(int requiredLevel) {
-    this.requiredLevel = requiredLevel;
+  // Getters
+  public int getWeaponId() {
+    return weaponId;
   }
 
   public int getDamage() {
     return damage;
   }
 
-  public void setDamage(int damage) {
-    this.damage = damage;
+  public int getAttackSpeed() {
+    return attackSpeed;
+  }
+
+  public String getWeaponType() {
+    return weaponType;
+  }
+
+  public int getRequiredLevel() {
+    return requiredLevel;
+  }
+
+  public String getRequiredJob() {
+    return requiredJob;
   }
 
   public WeaponDurability getWeaponDurability() {
     return weaponDurability;
   }
 
-  public void setWeaponDurability(WeaponDurability weaponDurability) {
-    this.weaponDurability = weaponDurability;
-  }
-
   public RankValue getRankValue() {
     return rankValue;
+  }
+
+  // Setters
+  public void setWeaponId(int weaponId) {
+    this.weaponId = weaponId;
+  }
+
+  public void setDamage(int damage) {
+    this.damage = damage;
+  }
+
+  public void setAttackSpeed(int attackSpeed) {
+    this.attackSpeed = attackSpeed;
+  }
+
+  public void setWeaponType(String weaponType) {
+    this.weaponType = weaponType;
+  }
+
+  public void setRequiredLevel(int requiredLevel) {
+    this.requiredLevel = requiredLevel;
+  }
+
+  public void setRequiredJob(String requiredJob) {
+    this.requiredJob = requiredJob;
+  }
+
+  public void setWeaponDurability(WeaponDurability weaponDurability) {
+    this.weaponDurability = weaponDurability;
   }
 
   public void setRankValue(RankValue rankValue) {
     this.rankValue = rankValue;
   }
 
-
   @Override
   public int hashCode() {
-    return Objects.hash(itemID, weaponName, weaponType, gearSlotID, jobID,
-        requiredLevel, damage, weaponDurability, rankValue);
+    return Objects.hash(super.hashCode(), weaponId, damage, attackSpeed, 
+                      weaponType, requiredLevel, requiredJob, weaponDurability, rankValue);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null || getClass() != obj.getClass())
-      return false;
-
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
     Weapon other = (Weapon) obj;
-    return itemID == other.itemID
-        && Objects.equals(weaponName, other.weaponName)
-        && weaponType == other.weaponType
-        && gearSlotID == other.gearSlotID
-        && jobID == other.jobID
-        && requiredLevel == other.requiredLevel
-        && damage == other.damage
-        && weaponDurability == other.weaponDurability
-        && rankValue == other.rankValue;
+    return weaponId == other.weaponId &&
+           damage == other.damage &&
+           attackSpeed == other.attackSpeed &&
+           Objects.equals(weaponType, other.weaponType) &&
+           requiredLevel == other.requiredLevel &&
+           Objects.equals(requiredJob, other.requiredJob) &&
+           weaponDurability == other.weaponDurability &&
+           rankValue == other.rankValue;
   }
 
   @Override
   public String toString() {
     return String.format(
-        "Weapon(itemID=%d, weaponName=\"%s %s\", weaponType=%s, gearSlotID=%d, jobID=%d, requiredLevel=%d, damage=%d, weaponDurability=%s, rankValue=%s)",
-        itemID, weaponName, weaponType, gearSlotID, jobID,
-        requiredLevel, damage, weaponDurability, rankValue);
+        "Weapon(id=%d, name=\"%s\", level=%d, damage=%d, speed=%d, type=\"%s\", reqLevel=%d, reqJob=\"%s\", durability=%s, rankValue=%s)",
+        weaponId, getItemName(), getItemLevel(), damage, attackSpeed, 
+        weaponType, requiredLevel, requiredJob, weaponDurability, rankValue);
   }
 }

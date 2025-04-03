@@ -12,6 +12,19 @@ public class CharacterStatsDao {
         // Private constructor to prevent instantiation
     }
 
+    public static CharacterStats create(Connection connection, CharacterStats stat) throws SQLException {
+        String insertQuery = "INSERT INTO Character_Stats (characterID, statID, charValue) VALUES (?, ?, ?)";
+        
+        try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
+            statement.setInt(1, stat.getCharacterID());
+            statement.setInt(2, stat.getStatID());
+            statement.setInt(3, stat.getCharValue());
+            
+            statement.executeUpdate();
+        }
+        return stat;
+    }
+
     public static List<CharacterStats> getStatsByCharacterId(Connection cxn, int characterID) throws SQLException {
         List<CharacterStats> stats = new ArrayList<>();
         String query = "SELECT * FROM Character_Stats WHERE characterID = ?";
