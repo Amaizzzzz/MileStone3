@@ -4,12 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import cs5200project.model.Gear;
 import cs5200project.model.GearJob;
-import cs5200project.model.Item;
 import cs5200project.model.Job;
 
 public class GearJobDao {
@@ -43,9 +42,10 @@ public class GearJobDao {
 
             try (ResultSet results = selectStmt.executeQuery()) {
                 if (results.next()) {
-                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
-                    Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
-                    return new GearJob(gear, job);
+					Gear gearRs = GearDao.getGearByItemID(cxn,
+							results.getInt("itemID"));
+					Job jobRs = JobDao.getJobById(cxn, job.getJobID());
+					return new GearJob(gearRs, jobRs);
                 } else {
                     return null;
                 }
@@ -61,10 +61,11 @@ public class GearJobDao {
         """;
         List<GearJob> gearJobList = new ArrayList<>();
         try (PreparedStatement selectStmt = cxn.prepareStatement(selectGearJob)) {
-            selectStmt.setInt(1, itemId);
+			selectStmt.setInt(1, gearItem.getItemId());
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
-                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
+					Gear gear = GearDao.getGearByItemID(cxn,
+							results.getInt("itemID"));
                     Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
                     gearJobList.add(new GearJob(gear, job));
                 }
@@ -84,7 +85,8 @@ public class GearJobDao {
             selectStmt.setInt(1, jobId);
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
-                    Gear gear = GearDao.getGearById(cxn, results.getInt("itemID"));
+					Gear gear = GearDao.getGearByItemID(cxn,
+							results.getInt("itemID"));
                     Job job = JobDao.getJobById(cxn, results.getInt("jobID"));
                     gearJobList.add(new GearJob(gear, job));
                 }
@@ -99,8 +101,8 @@ public class GearJobDao {
             WHERE itemID = ? AND jobID = ?;
         """;
         try (PreparedStatement stmt = cxn.prepareStatement(delete)) {
-            stmt.setInt(1, gearItem.getItemId());
-            stmt.setInt(2, job.getJobID());
+			stmt.setInt(1, itemId);
+			stmt.setInt(2, jobId);
             stmt.executeUpdate();
         }
     }

@@ -5,8 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import cs5200project.model.Race;
 
@@ -29,17 +27,18 @@ public class RaceDao {
 		}
 	}
 
-	public static Race getRaceById(Connection cxn, Race race) throws SQLException {
+	public static Race getRaceById(Connection cxn, int raceId)
+			throws SQLException {
 		final String selectRace = """
 			SELECT * FROM Race 
 			WHERE raceID = ?;
 		""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectRace)) {
-			selectStmt.setInt(1, race.getRaceID());
+			selectStmt.setInt(1, raceId);
 			try (ResultSet results = selectStmt.executeQuery()) {
 				if (results.next()) {
 					String raceName = results.getString("raceName");
-					return new Race(race.getRaceID(), raceName);
+					return new Race(raceId, raceName);
 				} else {
 					return null;
 				}

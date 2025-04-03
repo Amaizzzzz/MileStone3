@@ -50,7 +50,8 @@ public class GearJob {
     // toString method
     @Override
     public String toString() {
-        return String.format("GearJob[%s, %s]", item.getItemID(), job.getJobID());
+		return String.format("GearJob[%s, %s]", item.getItemId(),
+				job.getJobID());
     }
 }
     
