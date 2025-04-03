@@ -42,7 +42,6 @@ public class ClanDao {
 			selectStmt.setInt(1, clan.getClanID());
 			try (ResultSet results = selectStmt.executeQuery()) {
 				if (results.next()) {
-					int raceId = results.getInt("raceID");
 					Race race = RaceDao.getRaceById(cxn, results.getInt("raceID"));
 					return new Clan(
 						results.getInt("clanID"),
@@ -66,11 +65,12 @@ public class ClanDao {
 			selectStmt.setInt(1, race.getRaceID());
 			try (ResultSet results = selectStmt.executeQuery()) {
 				while (results.next()) {
-					Race race = RaceDao.getRaceById(cxn, results.getInt("raceID"));
+					Race race1 = RaceDao.getRaceById(cxn,
+							results.getInt("raceID"));
 					clanList.add(new Clan(
 						results.getInt("clanID"),
 						results.getString("clanName"),
-						race
+							race1
 					));
 				}
 				return clanList;

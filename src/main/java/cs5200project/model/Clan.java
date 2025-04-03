@@ -5,7 +5,7 @@ import java.util.Objects;
 public class Clan {
     private int clanID;         // Primary key
     private String clanName;
-    private Race raceID;
+	private Race race;
 
     // constructor
     public Clan(int clanID, String clanName, Race race) {
