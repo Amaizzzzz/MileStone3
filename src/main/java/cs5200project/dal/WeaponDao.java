@@ -4,11 +4,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import cs5200project.model.Weapon;
 import cs5200project.model.Weapon.RankValue;
 import cs5200project.model.Weapon.WeaponDurability;
+import cs5200project.model.GearSlot;
+import cs5200project.model.Item;
+import cs5200project.model.Job;
 
 public class WeaponDao {
 
@@ -16,64 +18,54 @@ public class WeaponDao {
 		// Prevent instantiation
 	}
 
-	public static Weapon create(Connection cxn, String itemName, int itemLevel,
-			int maxStackSize, double price, int quantity, int damage,
-			int attackSpeed, String weaponType, String requiredJob,
-			WeaponDurability weaponDurability, RankValue rankValue)
+	
+	public static Weapon create(Connection cxn, 
+			int itemID, String itemName, int itemLevel, int maxStackSize,
+			double price, int quantity, int requiredLevel, int damage,
+			int attackSpeed, String weaponType, GearSlot gearSlot, Job requiredJob,
+			WeaponDurability weaponDurability, RankValue rankValue) 
 			throws SQLException {
 
-		// 1. Insert into Item
-		String insertItem = "INSERT INTO Item (itemName, itemLevel, maxStackSize, price, quantity) VALUES (?, ?, ?, ?, ?)";
-		try (PreparedStatement stmtItem = cxn.prepareStatement(insertItem,
-				Statement.RETURN_GENERATED_KEYS)) {
-			stmtItem.setString(1, itemName);
-			stmtItem.setInt(2, itemLevel);
-			stmtItem.setInt(3, maxStackSize);
-			stmtItem.setDouble(4, price);
-			stmtItem.setInt(5, quantity);
+		// If itemID is 0, create a new Item
+		if (itemID == 0) {
+			itemID = ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
+		}
 
-			stmtItem.executeUpdate();
-			ResultSet rsItem = stmtItem.getGeneratedKeys();
+		// Insert into Weapon table
+		final String insertWeapon = """
+			INSERT INTO Weapon (itemID, requiredLevel, damage, attackSpeed, weaponType, gearSlotID, requiredJob, weaponDurability, rankValue)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+			""";
+			
+		try (PreparedStatement stmt = cxn.prepareStatement(insertWeapon)) {
+			stmt.setInt(1, itemID);
+			stmt.setInt(2, requiredLevel);
+			stmt.setInt(3, damage);
+			stmt.setInt(4, attackSpeed);
+			stmt.setString(5, weaponType);
+			stmt.setInt(6, gearSlot.getSlotID());
+			stmt.setInt(7, requiredJob.getJobID());
+			stmt.setString(8, weaponDurability.name());
+			stmt.setString(9, rankValue.name());
+			stmt.executeUpdate();
+		}
 
-			if (rsItem.next()) {
-				int itemID = rsItem.getInt(1);
+		// Return a new Weapon object with the generated itemID
+		return new Weapon(itemID, itemName, itemLevel, maxStackSize, price,
+				quantity, requiredLevel, damage, attackSpeed, weaponType, 
+				requiredJob.getJobName(), weaponDurability, rankValue);
+	}
 
-				// 2. Insert into Weapon
-				String insertWeapon = """
-						INSERT INTO Weapon (itemID, damage, attackSpeed, weaponType, requiredJob, weaponDurability, rankValue)
-						VALUES (?, ?, ?, ?, ?, ?, ?)
-						""";
-				try (PreparedStatement stmtWeapon = cxn
-						.prepareStatement(insertWeapon)) {
-					stmtWeapon.setInt(1, itemID);
-					stmtWeapon.setInt(2, damage);
-					stmtWeapon.setInt(3, attackSpeed);
-					stmtWeapon.setString(4, weaponType);
-					stmtWeapon.setString(5, requiredJob);
-					stmtWeapon.setString(6, weaponDurability.name());
-					stmtWeapon.setString(7, rankValue.name());
-
-					stmtWeapon.executeUpdate();
-				}
-
-				return new Weapon(itemID, itemName, itemLevel, maxStackSize,
-						price, quantity, 0, damage, attackSpeed, weaponType,
-						requiredJob, weaponDurability, rankValue);
-			} else {
-				throw new SQLException("Creating item failed, no ID returned.");
-			}
-        }
-    }
 
 	public static Weapon getWeaponById(Connection cxn, int itemID)
 			throws SQLException {
 		String query = """
 				SELECT i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
-				       w.damage, w.attackSpeed, w.weaponType, w.requiredJob,
-				       w.weaponDurability, w.rankValue
-				FROM Item i
-				JOIN Weapon w ON i.itemID = w.itemID
-				WHERE i.itemID = ?
+				       w.requiredLevel, w.damage, w.attackSpeed, w.weaponType, 
+				       w.gearSlotID, w.requiredJob, w.weaponDurability, w.rankValue
+				FROM Weapon w
+				JOIN Item i ON w.itemID = i.itemID
+				WHERE w.itemID = ?
 				""";
 
 		try (PreparedStatement stmt = cxn.prepareStatement(query)) {
@@ -85,18 +77,22 @@ public class WeaponDao {
 					int maxStackSize = rs.getInt("maxStackSize");
 					double price = rs.getDouble("price");
 					int quantity = rs.getInt("quantity");
+					int requiredLevel = rs.getInt("requiredLevel");
 					int damage = rs.getInt("damage");
 					int attackSpeed = rs.getInt("attackSpeed");
 					String weaponType = rs.getString("weaponType");
-					String requiredJob = rs.getString("requiredJob");
-					WeaponDurability durability = WeaponDurability
+					
+					// Get the required job name
+					int requiredJob = rs.getInt("requiredJob");
+					
+					WeaponDurability weaponDurability = WeaponDurability
 							.valueOf(rs.getString("weaponDurability"));
-					RankValue rank = RankValue
+					RankValue rankValue = RankValue
 							.valueOf(rs.getString("rankValue"));
 
 					return new Weapon(itemID, itemName, itemLevel, maxStackSize,
-							price, quantity, 0, damage, attackSpeed, weaponType,
-							requiredJob, durability, rank);
+							price, quantity, requiredLevel, damage, attackSpeed, weaponType,
+							gearSlot, requiredJob, weaponDurability, rankValue);
 				}
 			}
         }

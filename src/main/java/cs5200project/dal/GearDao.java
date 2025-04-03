@@ -18,25 +18,38 @@ public class GearDao {
 	}
 
 	public static Gear create(Connection cxn, 
-			int itemLevel, int maxStackSize,
+			int itemID, String itemName, int itemLevel, int maxStackSize,
 			double price, int quantity, int requiredLevel)
 			throws SQLException {
 		
-		String insertGear = "INSERT INTO Gear (itemId, requiredLevel) VALUES (?, ?);";
+		// If itemID is 0, create a new Item in the parent table
+		// and get back the auto-generated ID
+		if (itemID == 0) {
+			itemID = ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
+		}
+
+		// Insert into Gear table
+		String insertGear = "INSERT INTO Gear (itemID, requiredLevel) VALUES (?, ?);";
 
 		try (PreparedStatement insertStmt = cxn.prepareStatement(insertGear)) {
-			ItemDao.create(cxn, itemName, itemLevel, maxStackSize, price, quantity);
+			insertStmt.setInt(1, itemID);
 			insertStmt.setInt(2, requiredLevel);
 			insertStmt.executeUpdate();
 
-			return new Gear(itemId, itemName, itemLevel, maxStackSize, price,
+			return new Gear(itemID, itemName, itemLevel, maxStackSize, price,
 					quantity, requiredLevel);
 		}
 	}
 
 	public static Gear getGearByItemID(Connection cxn, int itemID)
 			throws SQLException {
-		String selectGear = "SELECT * FROM Gear WHERE itemID = ?;";
+		String selectGear = """
+			SELECT i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity,
+			       g.requiredLevel
+			FROM Gear g
+			JOIN Item i ON g.itemID = i.itemID
+			WHERE g.itemID = ?;
+			""";
 		try (PreparedStatement selectStmt = cxn.prepareStatement(selectGear)) {
 			selectStmt.setInt(1, itemID);
 			try (ResultSet results = selectStmt.executeQuery()) {
@@ -46,7 +59,7 @@ public class GearDao {
 							results.getString("itemName"),
 							results.getInt("itemLevel"),
 							results.getInt("maxStackSize"),
-							results.getInt("price"),
+							results.getDouble("price"),
 							results.getInt("quantity"),
 							results.getInt("requiredLevel")
 						);
@@ -56,21 +69,30 @@ public class GearDao {
 		return null;
 	}
 
-	public static List<Item> getGearsByRequiredLevel(Connection cxn,
+	public static List<Gear> getGearsByRequiredLevel(Connection cxn,
 			int requiredLevel) throws SQLException {
-		final String selectGear = "SELECT * FROM Gear WHERE requiredLevel = ?;";
-		List<Item> gearList = new ArrayList<>();
-		try (PreparedStatement selectStmt = cxn.prepareStatement(selectGear);
-				ResultSet results = selectStmt.executeQuery()) {
-			while (results.next()) {
-				gearList.add(new Gear(results.getInt("itemID"),
-						results.getString("itemName"),
-						results.getInt("itemLevel"),
-						results.getInt("maxStackSize"),
-						results.getDouble("price"), results.getInt("quantity"),
-						requiredLevel));
+		final String selectGear = """
+			SELECT i.itemID, i.itemName, i.itemLevel, i.maxStackSize, i.price, i.quantity
+			FROM Gear g
+			JOIN Item i ON g.itemID = i.itemID
+			WHERE g.requiredLevel = ?;
+			""";
+		List<Gear> gearList = new ArrayList<>();
+		try (PreparedStatement selectStmt = cxn.prepareStatement(selectGear)) {
+			selectStmt.setInt(1, requiredLevel);
+			try (ResultSet results = selectStmt.executeQuery()) {
+				while (results.next()) {
+					gearList.add(new Gear(
+							results.getInt("itemID"),
+							results.getString("itemName"),
+							results.getInt("itemLevel"),
+							results.getInt("maxStackSize"),
+							results.getDouble("price"), 
+							results.getInt("quantity"),
+							requiredLevel));
+				}
+				return gearList;
 			}
-			return gearList;
 		}
 	}
 

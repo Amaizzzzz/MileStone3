@@ -1,6 +1,8 @@
 package cs5200project.dal;
 
 import cs5200project.model.CharacterJob;
+import cs5200project.model.Character;
+import cs5200project.model.Job;
 import java.sql.*;
 import java.util.*;
 

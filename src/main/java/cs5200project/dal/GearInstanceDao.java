@@ -17,19 +17,19 @@ public class GearInstanceDao {
 	private GearInstanceDao() {
 	}
 
-	public static GearInstance create(Connection cxn, Item item,
+	public static GearInstance create(Connection cxn, Gear gear,
 			Character character, GearSlot gearSlot) throws SQLException {
 		String insertGearInstance = """
 				INSERT INTO GearInstance (itemID, characterID, slotID)
 					VALUES (?, ?, ?);""";
 		try (PreparedStatement stmt = cxn.prepareStatement(insertGearInstance,
 				Statement.RETURN_GENERATED_KEYS)) {
-			stmt.setInt(1, item.getItemId());
+			stmt.setInt(1, gear.getItemId());
 			stmt.setInt(2, character.getCharacterID());
 			stmt.setInt(3, gearSlot.getSlotID());
 			stmt.executeUpdate();
 			
-			return new GearInstance(Utils.getAutoIncrementKey(stmt), gearSlot, character, item);
+			return new GearInstance(Utils.getAutoIncrementKey(stmt), gearSlot, character, gear);
 		}
 	}
 
@@ -49,11 +49,11 @@ public class GearInstanceDao {
 					/* **CharacterDao needs fix** */
 					Character character = CharacterDao.getCharacterById(cxn,
 							results.getInt("characterID"));
-					Item item = ItemDao.getItemById(cxn,
+					Gear gear = GearDao.getGearByItemID(cxn,
 							results.getInt("itemID"));
 					return new GearInstance(
 							gearInstance.getGearInstanceID(),
-							slot, character, item
+							slot, character, gear
 					);
 				}
 				else {
@@ -64,12 +64,12 @@ public class GearInstanceDao {
 	}
 
 	public static List<GearInstance> getGearInstanceByItemID(Connection cxn,
-			Item item) throws SQLException {
+			Gear gear) throws SQLException {
 		String selectGearInstance = "SELECT * FROM GearInstance WHERE itemId = ?;";
 		List<GearInstance> gearInstances = new ArrayList<>();
 		try (PreparedStatement stmt = cxn
 				.prepareStatement(selectGearInstance)) {
-			stmt.setInt(1, item.getItemId());
+			stmt.setInt(1, gear.getItemId());
 			try (ResultSet results = stmt.executeQuery()) {
 				while (results.next()) {
 					int characterID = results.getInt("characterID");
@@ -83,7 +83,7 @@ public class GearInstanceDao {
 
 					gearInstances.add(
 							new GearInstance(results.getInt("gearInstanceID"),
-									gearSlot, character, item));
+									gearSlot, character, gxxear));
 				}
 			}
 		}
