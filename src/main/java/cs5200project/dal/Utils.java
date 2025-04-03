@@ -1,4 +1,4 @@
-package application.dal;
+package cs5200project.dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
