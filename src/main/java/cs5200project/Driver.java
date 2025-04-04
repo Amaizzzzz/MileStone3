@@ -184,9 +184,9 @@ public class Driver {
             String[] tables = {
                 "CharacterCurrency", "CharacterStats", "CharacterJob", 
                 "ConsumablesStatsBonus", "WeaponStatsBonus", "GearStatisticBonus",
-                "GearInstance", "GearJob", 
+                "GearInstance", "GearJob", "InventorySlot", 
                 "Weapon", "Consumable", "Gear", "Item",
-                "InventorySlot", "`Character`", "Statistic", "StatType",
+                "`Character`", "Statistic", "StatType",
                 "GearSlot", "Clan", "Job", "Race", "Player", "Currency", 
                 "LevelThreshold"
             };
