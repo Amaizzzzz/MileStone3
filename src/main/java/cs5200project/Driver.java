@@ -1,13 +1,44 @@
 package cs5200project;
 
-import cs5200project.model.*;
-import cs5200project.model.Weapon.RankValue;
-import cs5200project.model.Weapon.WeaponDurability;
-import cs5200project.model.Consumable.ConsumablesType;
-import cs5200project.dal.*;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
+
+import cs5200project.dal.CharacterCurrencyDao;
+import cs5200project.dal.CharacterDao;
+import cs5200project.dal.CharacterJobDao;
+import cs5200project.dal.CharacterStatsDao;
+import cs5200project.dal.ConnectionManager;
+import cs5200project.dal.ConsumableDao;
+import cs5200project.dal.ConsumablesStatsBonusDao;
+import cs5200project.dal.CurrencyDao;
+import cs5200project.dal.GearDao;
+import cs5200project.dal.GearInstanceDao;
+import cs5200project.dal.GearJobDao;
+import cs5200project.dal.GearSlotDao;
+import cs5200project.dal.JobDao;
+import cs5200project.dal.PlayerDao;
+import cs5200project.dal.RaceDao;
+import cs5200project.dal.StatTypeDao;
+import cs5200project.dal.StatisticDao;
+import cs5200project.dal.WeaponDao;
+import cs5200project.dal.WeaponStatsBonusDao;
+import cs5200project.model.CharacterCurrency;
+import cs5200project.model.Consumable;
+import cs5200project.model.Consumable.ConsumablesType;
+import cs5200project.model.ConsumablesStatsBonus;
+import cs5200project.model.Currency;
+import cs5200project.model.Gear;
+import cs5200project.model.GearInstance;
+import cs5200project.model.GearSlot;
+import cs5200project.model.Job;
+import cs5200project.model.Player;
+import cs5200project.model.Race;
+import cs5200project.model.StatType;
+import cs5200project.model.Statistic;
+import cs5200project.model.Weapon;
+import cs5200project.model.Weapon.RankValue;
+import cs5200project.model.Weapon.WeaponDurability;
+import cs5200project.model.WeaponStatsBonus;
 
 public class Driver {
     public static void main(String[] args) {
@@ -177,7 +208,12 @@ public class Driver {
     }
 
     private static void resetSchema() throws SQLException {
-        try (Connection cxn = ConnectionManager.getConnection()) {
+		try (Connection cxn = ConnectionManager.getSchemalessConnection()) {
+			cxn.createStatement().executeUpdate("DROP SCHEMA IF EXISTS cs5200project;");
+			cxn.createStatement().executeUpdate("CREATE SCHEMA cs5200project;");
+		}
+		try (Connection cxn = ConnectionManager.getConnection()) {
+
             System.out.println("Dropping existing tables...");
             
             // Drop all tables in reverse order of dependencies
